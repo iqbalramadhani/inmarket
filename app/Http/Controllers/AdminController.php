@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Category;
-use App\OrderDetail;
-use App\Product;
-use App\Wallet;
-use Cache;
 use Illuminate\Http\Request;
+use App\Models\Category;
+use App\Models\OrderDetail;
+use App\Models\Product;
+use App\Models\Wallet;
+use Artisan;
+use Cache;
+use CoreComponentRepository;
 use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
@@ -18,83 +20,96 @@ class AdminController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function admin_dashboard(Request $request)
-    {
+    {   
+        CoreComponentRepository::initializeCache();
         $root_categories = Category::where('level', 0)->get();
 
-        $cached_graph_data = Cache::remember('cached_graph_data', 86400, function () use ($root_categories) {
-            $num_of_sale_data = null;
+        $cached_graph_data = Cache::remember('cached_graph_data', 86400, function() use ($root_categories){
+            $num_of_sale_data = [];
             $qty_data = null;
-            foreach ($root_categories as $key => $category) {
+            $list_categori = [];
+            $verified_sellers = verified_sellers_id();
+            $list_id = [];
+            $no=0;
+            foreach ($root_categories as $key => $category){
                 $category_ids = \App\Utility\CategoryUtility::children_ids($category->id);
                 $category_ids[] = $category->id;
+                $list_categori[] = $category->id;
 
-                $num_of_sale_data .= Product::whereIn('category_id', $category_ids)->sum('num_of_sale') . ',';
-
-                $products = Product::whereIn('category_id', $category_ids)->get();
+                $products = Product::with('stocks')->whereIn('category_id', $category_ids)->whereIn('user_id',$verified_sellers)->get();
                 $qty = 0;
+                
                 foreach ($products as $key => $product) {
                     foreach ($product->stocks as $key => $stock) {
                         $qty += $stock->qty;
                     }
                 }
-                $qty_data .= $qty . ',';
+
+                $sale = DB::table('products')
+                    ->join('sellers','sellers.id','=','products.user_id')
+                    ->join('orders','orders.seller_id','=','sellers.id')
+                    ->where('orders.delivery_status','delivered')
+                    ->where('products.category_id',$category->id)
+                    ->whereIn('products.user_id',$verified_sellers)
+                    ->groupBy('orders.id')
+                    ->get(['orders.id']);
+                
+                $orders = [];
+
+                foreach($sale as $row){
+                    $orders[] = $row->id;
+                }
+
+                $gabung  = implode(',',$orders);
+
+                foreach($list_id as $row => $list){
+                    if($list == $gabung){
+                        $list_id[$row] = "";
+                        $num_of_sale_data[$row] = 0;
+                    }
+                }
+
+                $list_id[] = $gabung;
+                
+                $qty_data .= $qty.',';
+                $num_of_sale_data[$no] = $sale->count();
+                $no++;
             }
-            $item['num_of_sale_data'] = $num_of_sale_data;
+
+            $item['num_of_sale_data'] = implode(',',$num_of_sale_data);
             $item['qty_data'] = $qty_data;
 
             return $item;
         });
 
+        $new_customer = \App\Models\Customer::whereMonth('created_at', (int)date('m'))->whereYear('created_at', (int)date('Y'))->count();
+        $new_seller = \App\Models\Seller::whereMonth('created_at', (int)date('m'))->whereYear('created_at', (int)date('Y'))->count();
+
         $status = $request->status ?? '0';
         $provinsi_2 = $request->provinsi_2 ?? '';
 
         $seller = DB::table('sellers')
-            ->leftJoin('users', 'user_id', '=', 'users.id')
-            ->leftJoin('addresses', 'users.id', '=', 'addresses.user_id')
-            ->where('addresses.province', 'LIKE', '%' . $provinsi_2 . '%')
-            ->where('sellers.verification_status', 'LIKE', '%' . $status . '%')
-            ->where('addresses.province', '<>', '')
-            ->where('addresses.province', '<>', null)
-            ->groupBy('sellers.verification_info', 'addresses.province')
-            ->paginate();
+            ->select(['rajaongkir_provinces.province_name as province','sellers.verification_status',DB::raw('count(sellers.id) as jumlah')])
+            ->join('users', 'sellers.user_id', '=', 'users.id')
+            ->join('addresses', 'users.id', '=', 'addresses.user_id')
+            ->join('rajaongkir_provinces','rajaongkir_provinces.province_id','=','addresses.province_id')
+            ->where('sellers.verification_status', '1')
+            ->groupBy('addresses.province_id')
+            ->orderByDesc('jumlah')
+            ->limit(3)->get();
 
-        foreach ($seller->items() as $row) {
-            $row->jumlah = DB::table('sellers')
-                ->leftJoin('users', 'user_id', '=', 'users.id')
-                ->leftJoin('addresses', 'users.id', '=', 'addresses.user_id')
-                ->where('addresses.province', 'LIKE', $row->province)
-                ->where('addresses.province', '<>', '')
-                ->where('addresses.province', '<>', null)
-                ->where('sellers.verification_status', $row->verification_status)
-                ->count();
-        }
-
-        $buyer = DB::table('shops')
-            ->leftJoin('users', 'user_id', '=', 'users.id')
-            ->leftJoin('addresses', 'users.id', '=', 'addresses.user_id')
-            ->leftJoin('sellers', 'users.id', '=', 'sellers.user_id')
-            ->select(['*', 'sellers.id as seller_id', 'shops.name as shop_name', 'addresses.province as address_province'])
-            ->groupBy('users.id', 'addresses.user_id');
-        if (isset($request->nama_usaha)) {
-            $buyer->where('addresses.province', 'LIKE', '%' . $request->nama_usaha . '%');
-        }
-        if (isset($request->provinsi_1)) {
-            $buyer->where('addresses.province', 'LIKE', '%' . $request->provinsi_1 . '%');
-        }
-
-        $buyer = $buyer->paginate(3);
-        foreach ($buyer->items() as $row) {
-            $row->jumlah = DB::table('orders')->where('seller_id', $row->seller_id)->where('delivery_status', 'delivered')->count();
-        }
-
-        $kategori = $_GET['kategori'] ?? '';
-        $produk = $_GET['produk'] ?? '';
-        $products = \App\Product::with('category')->whereHas('category', function ($query) use ($kategori) {
-            return $query->where('name', 'like', '%' . $kategori . '%');
-        })->where('name', 'like', '%' . $produk . '%')->paginate(3);
-
-        $new_customer = \App\Customer::whereMonth('created_at', (int)date('m'))->whereYear('created_at', (int)date('Y'))->count();
-        $new_seller = \App\Seller::whereMonth('created_at', (int)date('m'))->whereYear('created_at', (int)date('Y'))->count();
+        $buyer = DB::table('orders')
+            ->select(['orders.*', 'shops.user_id as seller_id', 'shops.name as shop_name','rajaongkir_provinces.province_name as address_province',DB::raw('count(orders.id) as jumlah')])
+            ->join('shops','shops.user_id','=','orders.seller_id')
+            ->join('users', 'users.id', '=', 'orders.user_id')
+            ->join('addresses', 'users.id', '=', 'addresses.user_id')
+            ->join('rajaongkir_provinces','rajaongkir_provinces.province_id','=','addresses.province_id')
+            ->where('orders.delivery_status','delivered')
+            ->groupBy('addresses.province_id')
+            ->orderByDesc('jumlah')
+            ->get();
+        
+        $products = \App\Models\Product::with('category')->whereHas('category')->paginate(3);
 
         $queryGetCommision = OrderDetail::where('payment_status', 'paid')
             ->where('delivery_status', 'confirmed')
@@ -105,10 +120,13 @@ class AdminController extends Controller
 
         $total_wallet_disbusrsement = Wallet::where('type', 'DISBURSEMENT')->whereMonth('created_at', (int)date('m'))->sum('amount');
 
-        return view('backend.dashboard', compact('root_categories', 'cached_graph_data',
-            'seller', 'buyer', 'products', 'new_customer', 'new_seller', 'total_commission_seller',
-            'total_commission_inatrade',
-        'total_wallet_disbusrsement'
-        ));
+        return view('backend.dashboard', compact('root_categories', 'cached_graph_data', 'seller', 'buyer', 'products', 'new_customer', 'new_seller','total_commission_seller','total_commission_inatrade','total_wallet_disbusrsement'));
+    }
+
+    function clearCache(Request $request)
+    {
+        Artisan::call('cache:clear');
+        flash(translate('Cache cleared successfully'))->success();
+        return back();
     }
 }

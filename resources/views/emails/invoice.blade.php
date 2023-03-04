@@ -127,11 +127,11 @@
 							<tr class="">
 								<td>{{ $orderDetail->product->getTranslation('name') }} @if($orderDetail->variation != null) ({{ $orderDetail->variation }}) @endif</td>
 								<td>
-									@if ($orderDetail->shipping_type != null && $orderDetail->shipping_type == 'home_delivery')
+									@if ($order->shipping_type != null && $order->shipping_type == 'home_delivery')
 										{{ translate('Home Delivery') }}
-									@elseif ($orderDetail->shipping_type == 'pickup_point')
-										@if ($orderDetail->pickup_point != null)
-											{{ $orderDetail->pickup_point->getTranslation('name') }} ({{ translate('Pickip Point') }})
+									@elseif ($order->shipping_type == 'pickup_point')
+										@if ($order->pickup_point != null)
+											{{ $order->pickup_point->getTranslation('name') }} ({{ translate('Pickip Point') }})
 										@endif
 									@endif
 								</td>

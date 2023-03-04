@@ -178,9 +178,11 @@ return [
         Laracon21\Combinations\CombinationsServiceProvider::class,
         Maatwebsite\Excel\ExcelServiceProvider::class,
         Anand\LaravelPaytmWallet\PaytmWalletServiceProvider::class,
-        \Laravel\Passport\PassportServiceProvider::class,
         KingFlamez\Rave\RaveServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
+        Laravolt\Indonesia\ServiceProvider::class,
         /*
          * Package Service Providers...
          */
@@ -250,7 +252,8 @@ return [
         'Str' => Illuminate\Support\Str::class,
         'Rave' => KingFlamez\Rave\Facades\Rave::class,
         'Image' => Intervention\Image\Facades\Image::class,
-        'Uuid' => Webpatser\Uuid\Uuid::class,
+        'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
+        'Indonesia' => Laravolt\Indonesia\Facade::class
     ],
 
 ];

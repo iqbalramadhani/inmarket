@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Notifications\EmailVerificationNotification;
-use App\Order;
-use App\OrderDetail;
-use App\Product;
-use App\Seller;
-use App\Shop;
-use App\User;
 use Illuminate\Http\Request;
+use App\Models\Seller;
+use App\Models\User;
+use App\Models\Shop;
+use App\Models\Product;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use Illuminate\Support\Facades\Hash;
-use App\Mail\SellerApproved;
-use Mail;
+use App\Notifications\EmailVerificationNotification;
+use Cache;
 
 class SellerController extends Controller
 {
@@ -165,11 +164,12 @@ class SellerController extends Controller
         Product::where('user_id', $seller->user_id)->delete();
 
         $orders = Order::where('user_id', $seller->user_id)->get();
-        Order::where('user_id', $seller->user_id)->delete();
 
         foreach ($orders as $key => $order) {
             OrderDetail::where('order_id', $order->id)->delete();
         }
+
+        Order::where('user_id', $seller->user_id)->delete();
 
         User::destroy($seller->user->id);
 
@@ -195,7 +195,7 @@ class SellerController extends Controller
 
     public function show_verification_request($id)
     {
-        $seller = Seller::findOrFail($id);
+        $seller = Seller::with('user.shop.rajaongkir_province', 'user.shop.rajaongkir_city', 'user.shop.rajaongkir_subdistrict')->findOrFail($id);
         return view('backend.sellers.verification', compact('seller'));
     }
 
@@ -204,6 +204,7 @@ class SellerController extends Controller
         $seller = Seller::findOrFail($id);
         $seller->verification_status = 1;
         if ($seller->save()) {
+            Cache::forget('verified_sellers_id');
             flash(translate('Seller has been approved successfully'))->success();
             return redirect()->route('sellers.index');
         }
@@ -217,12 +218,14 @@ class SellerController extends Controller
         $seller->verification_status = 0;
         $seller->verification_info = null;
         if ($seller->save()) {
+            Cache::forget('verified_sellers_id');
             flash(translate('Seller verification request has been rejected successfully'))->success();
             return redirect()->route('sellers.index');
         }
         flash(translate('Something went wrong'))->error();
         return back();
     }
+
 
     public function payment_modal(Request $request)
     {
@@ -241,8 +244,7 @@ class SellerController extends Controller
         $seller = Seller::findOrFail($request->id);
         $seller->verification_status = $request->status;
         if ($seller->save()) {
-            $template = new SellerApproved($seller);
-            Mail::to($seller->user->email)->send($template);
+            Cache::forget('verified_sellers_id');
             return 1;
         }
         return 0;
@@ -252,7 +254,7 @@ class SellerController extends Controller
     {
         $seller = Seller::findOrFail(decrypt($id));
 
-        $user = $seller->user;
+        $user  = $seller->user;
 
         auth()->login($user, true);
 
@@ -273,83 +275,5 @@ class SellerController extends Controller
 
         $seller->user->save();
         return back();
-    }
-
-    public function download()
-    {
-
-        // $seller = DB::table('sellers')
-        //     ->join('shops', 'sellers.user_id', '=', 'shops.user_id')
-        //     ->join('users', 'sellers.user_id', '=', 'users.id')
-        //     ->get();
-        $seller = Seller::with('user.shop')->get();
-
-        $header = [
-            'No',
-            'Nama',
-            'Email',
-            'Phone',
-            'Status Verifikasi',
-            'Nama Usaha',
-            'Alamat Toko',
-            'No. Kontak Usaha',
-            'Facebook',
-            'Youtube',
-            'Google',
-            'Twitter',
-            'Tanggal Join',
-            'Details',
-        ];
-        $newData = [];
-        $newData[] = $header;
-        $i = 1;
-        foreach ($seller as $row) {
-            $text = "";
-            $newDataTemp = [];
-            $newDataTemp = [
-                $i,
-                $row->user->name,
-                $row->user->email,
-                $row->user->phone,
-                ($row->verification_status) ? 'Terverifikasi' : 'Belum Terverifikasi',
-                $row->user->shop->name,
-                $row->user->shop->address,
-                $row->user->shop->phone,
-                $row->user->shop->facebook,
-                $row->user->shop->youtube,
-                $row->user->shop->google,
-                $row->user->shop->twitter,
-                $row->created_at,
-            ];
-            // if(!count(json_decode($row->verification_info))) {
-                //     continue;
-                // }
-            if ($row->verification_info != null) {
-                foreach (json_decode($row->verification_info) as $data) {
-                    $text .= $data->label . " : " . $data->value;
-                }
-            }
-            $row->details = $text;
-            $newDataTemp[] = $text;
-            $newData[] = $newDataTemp;
-            
-            $i++;
-        }
-
-        $filename = time() . ".xls";
-        header("Content-Type: application/vnd.ms-excel");
-        header("Content-Disposition: attachment; filename=\"$filename\"");
-
-        $heading = false;
-        if (!empty($newData)) {
-            foreach ($newData as $row) {
-                echo implode("\t", array_values($row)) . "\n";
-            }
-        }
-
-        exit;
-
-        // dd($newData);
-        // echo "asdasd";
     }
 }

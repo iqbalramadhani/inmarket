@@ -13,9 +13,10 @@
 					@csrf
 					<div class="row">
 						<div class="col-lg-8 form-horizontal" id="form">
+							@php $is_location = false; @endphp
 							@foreach (json_decode(get_setting('verification_form')) as $key => $element)
 								@if ($element->type == 'text' || $element->type == 'file')
-									<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">
+									<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">
 									    <input type="hidden" name="type[]" value="{{ $element->type }}">
 									    <div class="col-lg-3">
 									        <label class="col-from-label">{{ ucfirst($element->type) }}</label>
@@ -24,9 +25,33 @@
 									        <input class="form-control" type="text" name="label[]" value="{{ $element->label }}" placeholder="{{ translate('Label') }}">
 									    </div>
 									    <div class="col-lg-2"><span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span></div>
+
+										@if (!empty($element->is_required))
+											<div class="col-lg-3">
+												<label class="col-from-label">{{translate('Required')}}</label>
+											</div>
+											<div class="col-lg-7">															
+													<select class="form-control aiz-selectpicker" name="required[]">
+														<option value="false" {{ $element->is_required == 'false' ? "selected" : "" }}> Not Required</option>
+                                                        <option value="true" {{ $element->is_required == 'true' ? "selected" : "" }}> Required </option>
+													</select>
+											</div>
+										@else
+											<div class="col-lg-3">
+												<label class="col-from-label">{{translate('Required')}}</label>
+											</div>
+											<div class="col-lg-7">															
+													<select class="form-control aiz-selectpicker" name="required[]">
+														<option value="false"> Not Required</option>
+                                                        <option value="true"> Required </option>
+													</select>
+											</div>
+										@endif
 									</div>
+									
+									
 								@elseif ($element->type == 'select' || $element->type == 'multi_select' || $element->type == 'radio')
-									<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">
+									<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">
 									    <input type="hidden" name="type[]" value="{{ $element->type }}">
 									    <input type="hidden" name="option[]" class="option" value="{{ $key }}">
 									    <div class="col-lg-3">
@@ -49,7 +74,85 @@
 									        <button class="btn btn-success pull-right" type="button" onclick="add_customer_choice_options(this)"><i class="glyphicon glyphicon-plus"></i> Add option</button>
 									    </div>
 									    <div class="col-lg-2"><span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span></div>
+										
+										@if (!empty($element->is_required))
+											<div class="col-lg-3">
+													<label class="col-from-label">{{translate('Required')}}</label>
+											</div>
+											<div class="col-lg-7">															
+													<select class="form-control aiz-selectpicker" name="required[]">
+														<option value="false" {{ $element->is_required == 'false' ? "selected" : "" }}> Not Required</option>
+														<option value="true" {{ $element->is_required == 'true' ? "selected" : "" }}> Required </option>
+													</select>
+											</div>
+										@else
+											<div class="col-lg-3">
+												<label class="col-from-label">{{translate('Required')}}</label>
+											</div>
+											<div class="col-lg-7">															
+													<select class="form-control aiz-selectpicker" name="required[]">
+														<option value="false"> Not Required</option>
+                                                        <option value="true"> Required </option>
+													</select>
+											</div>
+										@endif
 									</div>
+								@elseif ($element->type == 'location')
+									@php $is_location = true; @endphp
+									<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">
+									<input type="hidden" name="type[]" value="location">
+									<input type="hidden" name="label[]" value="location">
+									<div class="col-lg-3">
+										<label class="col-from-label">Location</label>
+									</div>
+									
+									<div class="col-lg-7">
+										<input class="form-control" type="text" name="options_location[]" value="Provinsi" disabled>
+									</div>
+									<div class="col-lg-2">
+										<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>
+									</div>
+
+									<div class="col-lg-3">
+										<label class="col-from-label"></label>
+									</div>
+									<div class="col-lg-7">
+										<input class="form-control" type="text" name="options_location[]" value="Kota" disabled>
+									</div>
+
+									<div class="col-lg-3">
+										<label class="col-from-label"></label>
+									</div>
+									<div class="col-lg-7">
+										<input class="form-control" type="text" name="options_location[]" value="Kecamatan" disabled>
+									</div>
+
+									<div class="col-lg-3">
+										<label class="col-from-label"></label>
+									</div>
+									<div class="col-lg-7">
+										<input class="form-control" type="text" name="options_location[]" value="Kelurahan" disabled>
+									</div>
+
+									<div class="col-lg-3">
+										<label class="col-from-label"></label>
+									</div>
+									<div class="col-lg-7">
+										<input class="form-control" type="text" name="options_location[]" value="Kode Pos" disabled>
+									</div>
+
+									@if (!empty($element->is_required))
+										<div class="col-lg-3">
+											<label class="col-from-label">{{translate('Required')}}</label>
+										</div>
+										<div class="col-lg-7">															
+												<select class="form-control aiz-selectpicker" name="required[]">
+													<option value="false" {{ $element->is_required == 'false' ? "selected" : "" }}> Not Required</option>
+                                                    <option value="true" {{ $element->is_required == 'true' ? "selected" : "" }}> Required </option>
+												</select>
+										</div>
+									</div>
+									@endif
 								@endif
 							@endforeach
 						</div>
@@ -61,6 +164,9 @@
 								<li class="list-group-item btn" style="text-align: left;" onclick="appenddToForm('multi-select')">{{translate('Multiple Select')}}</li>
 								<li class="list-group-item btn" style="text-align: left;" onclick="appenddToForm('radio')">{{translate('Radio')}}</li>
 								<li class="list-group-item btn" style="text-align: left;" onclick="appenddToForm('file')">{{translate('File')}}</li>
+								@if ($is_location == false)
+								<li class="list-group-item btn" id ="location-button" style="text-align: left;" onclick="appenddToForm('location')">{{translate('Location')}}</li>
+								@endif
 							</ul>
 
 						</div>
@@ -98,7 +204,7 @@
 		function appenddToForm(type){
 			//$('#form').removeClass('seller_form_border');
 			if(type == 'text'){
-				var str = '<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">'
+				var str = '<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">'
 								+'<input type="hidden" name="type[]" value="text">'
 								+'<div class="col-lg-3">'
 									+'<label class="col-from-label">Text</label>'
@@ -109,12 +215,21 @@
 								+'<div class="col-lg-2">'
 									+'<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>'
 								+'</div>'
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">{{translate('Required')}}</label>'
+								+'</div>'
+								+'<div class="col-lg-7">'												
+									+'<select class="form-control aiz-selectpicker" name="required[]">'
+										+'<option value="false"> Not Required</option>'
+                                        +'<option value="true"> Required </option>'
+									+'</select>'
+								+'</div>'
 							+'</div>';
 				$('#form').append(str);
 			}
 			else if (type == 'select') {
 				i++;
-				var str = '<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">'
+				var str = '<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">'
 								+'<input type="hidden" name="type[]" value="select"><input type="hidden" name="option[]" class="option" value="'+i+'">'
 								+'<div class="col-lg-3">'
 									+'<label class="col-from-label">Select</label>'
@@ -129,12 +244,21 @@
 								+'<div class="col-lg-2">'
 									+'<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>'
 								+'</div>'
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">{{translate('Required')}}</label>'
+								+'</div>'
+								+'<div class="col-lg-7">'												
+									+'<select class="form-control aiz-selectpicker" name="required[]">'
+										+'<option value="false"> Not Required</option>'
+                                        +'<option value="true"> Required </option>'
+									+'</select>'
+								+'</div>'
 							+'</div>';
 				$('#form').append(str);
 			}
 			else if (type == 'multi-select') {
 				i++;
-				var str = '<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">'
+				var str = '<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">'
 								+'<input type="hidden" name="type[]" value="multi_select"><input type="hidden" name="option[]" class="option" value="'+i+'">'
 								+'<div class="col-lg-3">'
 									+'<label class="col-from-label">Multiple select</label>'
@@ -149,12 +273,21 @@
 								+'<div class="col-lg-2">'
 									+'<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>'
 								+'</div>'
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">{{translate('Required')}}</label>'
+								+'</div>'
+								+'<div class="col-lg-7">'												
+									+'<select class="form-control aiz-selectpicker" name="required[]">'
+										+'<option value="false"> Not Required</option>'
+                                        +'<option value="true"> Required </option>'
+									+'</select>'
+								+'</div>'
 							+'</div>';
 				$('#form').append(str);
 			}
 			else if (type == 'radio') {
 				i++;
-				var str = '<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">'
+				var str = '<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">'
 								+'<input type="hidden" name="type[]" value="radio"><input type="hidden" name="option[]" class="option" value="'+i+'">'
 								+'<div class="col-lg-3">'
 									+'<label class="col-from-label">Radio</label>'
@@ -169,11 +302,20 @@
 								+'<div class="col-lg-2">'
 									+'<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>'
 								+'</div>'
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">{{translate('Required')}}</label>'
+								+'</div>'
+								+'<div class="col-lg-7">'												
+									+'<select class="form-control aiz-selectpicker" name="required[]">'
+										+'<option value="false"> Not Required</option>'
+                                        +'<option value="true"> Required </option>'
+									+'</select>'
+								+'</div>'
 							+'</div>';
 				$('#form').append(str);
 			}
 			else if (type == 'file') {
-				var str = '<div class="form-group row" style="background:rgba(0,0,0,0.1);padding:10px 0;">'
+				var str = '<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">'
 								+'<input type="hidden" name="type[]" value="file">'
 								+'<div class="col-lg-3">'
 									+'<label class="col-from-label">File</label>'
@@ -184,9 +326,78 @@
 								+'<div class="col-lg-2">'
 									+'<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>'
 								+'</div>'
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">{{translate('Required')}}</label>'
+								+'</div>'
+								+'<div class="col-lg-7">'												
+									+'<select class="form-control aiz-selectpicker" name="required[]">'
+										+'<option value="false"> Not Required</option>'
+                                        +'<option value="true"> Required </option>'
+									+'</select>'
+								+'</div>'
 							+'</div>';
 				$('#form').append(str);
 			}
+			else if(type == 'location'){
+				var str = '<div class="form-group row" style="background:rgb(227 227 227 / 25%);padding:10px 0;">'
+								+'<input type="hidden" name="type[]" value="location">'
+								+'<input type="hidden" name="label[]" value="location">'
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">Location</label>'
+								+'</div>'
+								
+								+'<div class="col-lg-7">'
+									+'<input class="form-control" type="text" name="options_location[]" value="Provinsi" disabled>'
+								+'</div>'
+								+'<div class="col-lg-2">'
+									+'<span class="btn btn-icon btn-circle icon-lg" onclick="delete_choice_clearfix(this)"><i class="las la-times"></i></span>'
+								+'</div>'
+
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label"></label>'
+								+'</div>'
+								+'<div class="col-lg-7">'
+									+'<input class="form-control" type="text" name="options_location[]" value="Kota" disabled>'
+								+'</div>'
+
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label"></label>'
+								+'</div>'
+								+'<div class="col-lg-7">'
+									+'<input class="form-control" type="text" name="options_location[]" value="Kecamatan" disabled>'
+								+'</div>'
+
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label"></label>'
+								+'</div>'
+								+'<div class="col-lg-7">'
+									+'<input class="form-control" type="text" name="options_location[]" value="Kelurahan" disabled>'
+								+'</div>'
+
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label"></label>'
+								+'</div>'
+								+'<div class="col-lg-7">'
+									+'<input class="form-control" type="text" name="options_location[]" value="Kode Pos" disabled>'
+								+'</div>'
+
+								+'<div class="col-lg-3">'
+									+'<label class="col-from-label">{{translate('Required')}}</label>'
+								+'</div>'
+								+'<div class="col-lg-7">'												
+									+'<select class="form-control aiz-selectpicker" name="required[]">'
+										+'<option value="false"> Not Required</option>'
+                                        +'<option value="true"> Required </option>'
+									+'</select>'
+								+'</div>'
+								
+							+'</div>';
+				$('#form').append(str);
+			}
+		}
+
+		function disabledButtonAddLocation(){
+			document.getElementById('location-button').onclick = null;
 		}
 	</script>
 @endsection

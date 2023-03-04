@@ -14,7 +14,7 @@ class ProductDetailCollection extends ResourceCollection
         return [
             'data' => $this->collection->map(function ($data) {
                 $precision = 2;
-                $calculable_price = homeDiscountedBasePrice($data);
+                $calculable_price = home_discounted_base_price($data, false);
                 $calculable_price = number_format($calculable_price, $precision, '.', '');
                 $calculable_price = floatval($calculable_price);
                 // $calculable_price = round($calculable_price, 2);
@@ -44,22 +44,36 @@ class ProductDetailCollection extends ResourceCollection
                     }
                 }
 
+                $brand = [
+                    'id'=> 0,
+                    'name'=> "",
+                    'logo'=> "",
+                ];
+
+                if($data->brand != null) {
+                    $brand = [
+                        'id'=> $data->brand->id,
+                        'name'=> $data->brand->getTranslation('name'),
+                        'logo'=> api_asset($data->brand->logo),
+                    ];
+                }
+
 
                 return [
                     'id' => (integer)$data->id,
-                    'name' => $data->name,
+                    'name' => $data->getTranslation('name'),
                     'added_by' => $data->added_by,
                     'seller_id' => $data->user->id,
                     'shop_id' => $data->added_by == 'admin' ? 0 : $data->user->shop->id,
-                    'shop_name' => $data->added_by == 'admin' ? 'In House Product' : $data->user->shop->name,
+                    'shop_name' => $data->added_by == 'admin' ? translate('In House Product') : $data->user->shop->name,
                     'shop_logo' => $data->added_by == 'admin' ? api_asset(get_setting('header_logo')) : api_asset($data->user->shop->logo),
                     'photos' => $photos,
                     'thumbnail_image' => api_asset($data->thumbnail_img),
                     'tags' => explode(',', $data->tags),
-                    'price_high_low' => (double)explode('-', homeDiscountedPrice($data))[0] == (double)explode('-', homeDiscountedPrice($data))[1] ? format_price((double)explode('-', homeDiscountedPrice($data))[0]) : "From " . format_price((double)explode('-', homeDiscountedPrice($data))[0]) . " to " . format_price((double)explode('-', homeDiscountedPrice($data))[1]),
+                    'price_high_low' => (double)explode('-', home_discounted_base_price($data, false))[0] == (double)explode('-', home_discounted_price($data, false))[1] ? format_price((double)explode('-', home_discounted_price($data, false))[0]) : "From " . format_price((double)explode('-', home_discounted_price($data, false))[0]) . " to " . format_price((double)explode('-', home_discounted_price($data, false))[1]),
                     'choice_options' => $this->convertToChoiceOptions(json_decode($data->choice_options)),
                     'colors' => json_decode($data->colors),
-                    'has_discount' => homeBasePrice($data) != homeDiscountedBasePrice($data),
+                    'has_discount' => home_base_price($data, false) != home_discounted_base_price($data, false),
                     'stroked_price' => home_base_price($data),
                     'main_price' => home_discounted_base_price($data),
                     'calculable_price' => $calculable_price,
@@ -69,7 +83,9 @@ class ProductDetailCollection extends ResourceCollection
                     'rating' => (double)$data->rating,
                     'rating_count' => (integer)Review::where(['product_id' => $data->id])->count(),
                     'earn_point' => (double)$data->earn_point,
-                    'description' => $data->description,
+                    'description' => $data->getTranslation('description'),
+                    'video_link' => $data->video_link != null ?  $data->video_link : "",
+                    'brand' => $brand,
                     'link' => route('product', $data->slug)
                 ];
             })
@@ -90,7 +106,7 @@ class ProductDetailCollection extends ResourceCollection
 //        if($data) {
         foreach ($data as $key => $choice) {
             $item['name'] = $choice->attribute_id;
-            $item['title'] = Attribute::find($choice->attribute_id)->name;
+            $item['title'] = Attribute::find($choice->attribute_id)->getTranslation('name');
             $item['options'] = $choice->values;
             array_push($result, $item);
         }

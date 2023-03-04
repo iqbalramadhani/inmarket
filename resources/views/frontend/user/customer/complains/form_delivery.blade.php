@@ -26,9 +26,9 @@
                     <div class="form-group">
                         <input class="form-control" type="text" name="resi" placeholder="Nomor Resi" required value="{{$complain->resi_number}}">
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <input type="text" class="form-control" name="resi_courier_service" placeholder="Layanan" value="{{$complain->resi_courier_service}}">
-                    </div>
+                    </div> -->
                     <a href="{{ url()->previous() }}"  class="btn btn-primary">Kembali</a>
                     @if($complain->status !== 'requested')
                         <button type="submit" class="btn btn-primary">Update</button>

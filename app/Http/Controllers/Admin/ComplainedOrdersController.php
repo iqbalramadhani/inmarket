@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Order;
-use App\User;
+use App\Models\Order;
+use App\Models\User;
 
 class ComplainedOrdersController extends Controller
 {

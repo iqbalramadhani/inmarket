@@ -25,7 +25,7 @@
   <p>{{translate('Bank Name')}} : {{implode(", ", $seller->user->bank_accounts->pluck('bank_name')->toArray())}}</p>
   <p>{{translate('Bank Acc Name')}} : {{implode(", ", $seller->user->bank_accounts->pluck('account_name')->toArray())}}</p>
   <p>{{translate('Bank Acc Number')}} : {{implode(", ", $seller->user->bank_accounts->pluck('account_number')->toArray())}}</p>
-  <p>{{translate('Bank Routing Number')}} : {{implode(", ", $seller->user->bank_accounts->pluck('bank_code')->toArray())}}</p>
+  <p>{{translate('Bank Code')}} : {{implode(", ", $seller->user->bank_accounts->pluck('bank_code')->toArray())}}</p>
 
   <br>
 
@@ -34,16 +34,16 @@
           <tbody>
           <tr>
               <td>{{ translate('Total Products') }}</td>
-              <td>{{ App\Product::where('user_id', $seller->user->id)->get()->count() }}</td>
+              <td>{{ App\Models\Product::where('user_id', $seller->user->id)->get()->count() }}</td>
           </tr>
           <tr>
               <td>{{ translate('Total Orders') }}</td>
-              <td>{{ App\OrderDetail::where('seller_id', $seller->user->id)->get()->count() }}</td>
+              <td>{{ App\Models\OrderDetail::where('seller_id', $seller->user->id)->get()->count() }}</td>
           </tr>
           <tr>
               <td>{{ translate('Total Sold Amount') }}</td>
               @php
-                  $orderDetails = \App\OrderDetail::where('seller_id', $seller->user->id)->get();
+                  $orderDetails = \App\Models\OrderDetail::where('seller_id', $seller->user->id)->get();
                   $total = 0;
                   foreach ($orderDetails as $key => $orderDetail) {
                       if($orderDetail->order != null && $orderDetail->order->payment_status == 'paid'){

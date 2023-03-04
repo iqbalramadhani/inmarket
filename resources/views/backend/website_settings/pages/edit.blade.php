@@ -10,7 +10,7 @@
 </div>
 <div class="card">
 	<ul class="nav nav-tabs nav-fill border-light">
-		@foreach (\App\Language::all() as $key => $language)
+		@foreach (\App\Models\Language::all() as $key => $language)
 			<li class="nav-item">
 				<a class="nav-link text-reset @if ($language->code == $lang) active @else bg-soft-dark border-light border-left-0 @endif py-3" href="{{ route('custom-pages.edit', ['id'=>$page->slug, 'lang'=> $language->code] ) }}">
 					<img src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" height="11" class="mr-1">
@@ -62,7 +62,7 @@
 						data-min-height="300"
 						name="content"
 						required
-					>@php echo $page->getTranslation('content',$lang); @endphp</textarea>
+					>{!! $page->getTranslation('content',$lang) !!}</textarea>
 				</div>
 			</div>
 		</div>
@@ -82,22 +82,14 @@
 			<div class="form-group row">
 				<label class="col-sm-2 col-from-label" for="name">{{translate('Meta Description')}}</label>
 				<div class="col-sm-10">
-					<textarea class="resize-off form-control" placeholder="{{translate('Description')}}" name="meta_description">
-						@php
-							echo $page->meta_description
-						@endphp
-					</textarea>
+					<textarea class="resize-off form-control" placeholder="{{translate('Description')}}" name="meta_description">{!! $page->meta_description !!}</textarea>
 				</div>
 			</div>
 
 			<div class="form-group row">
 				<label class="col-sm-2 col-from-label" for="name">{{translate('Keywords')}}</label>
 				<div class="col-sm-10">
-					<textarea class="resize-off form-control" placeholder="{{translate('Keyword, Keyword')}}" name="keywords">
-						@php
-							echo $page->keywords
-						@endphp
-					</textarea>
+					<textarea class="resize-off form-control" placeholder="{{translate('Keyword, Keyword')}}" name="keywords">{!! $page->keywords !!}</textarea>
 					<small class="text-muted">{{ translate('Separate with coma') }}</small>
 				</div>
 			</div>
@@ -107,10 +99,10 @@
 				<div class="col-sm-10">
 					<div class="input-group " data-toggle="aizuploader" data-type="image">
 							<div class="input-group-prepend">
-									<div class="input-group-text bg-soft-secondary font-weight-medium">{{ translate('Browse') }}</div>
-							</div>
-							<div class="form-control file-amount">{{ translate('Choose File') }}</div>
-							<input type="hidden" name="meta_image" class="selected-files" value="{{ $page->meta_image }}">
+								<div class="input-group-text bg-soft-secondary font-weight-medium">{{ translate('Browse') }}</div>
+						</div>
+						<div class="form-control file-amount">{{ translate('Choose File') }}</div>
+						<input type="hidden" name="meta_image" class="selected-files" value="{{ $page->meta_image }}">
 					</div>
 					<div class="file-preview">
 					</div>

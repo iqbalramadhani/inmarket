@@ -1,7 +1,7 @@
 @extends('frontend.layouts.user_panel')
 
 @section('panel_content')
-    <div class="aiz-titlebar mt-2 mbs-4">
+    <div class="aiz-titlebar mt-2 mb-4">
         <div class="row align-items-center">
             <div class="col-md-6">
                 <h1 class="h3">{{ translate('Dashboard') }}</h1>
@@ -14,7 +14,7 @@
             <div class="bg-grad-3 text-white rounded-lg mb-4 overflow-hidden">
               <div class="px-3 pt-3">
                 <div class="h3 fw-700">
-                  {{ count(\App\Product::where('user_id', Auth::user()->id)->get()) }}
+                  {{ count(\App\Models\Product::where('user_id', Auth::user()->id)->get()) }}
                 </div>
                 <div class="opacity-50">{{ translate('Products')}}</div>
               </div>
@@ -28,7 +28,7 @@
             <div class="bg-grad-1 text-white rounded-lg mb-4 overflow-hidden">
                 <div class="px-3 pt-3">
                     <div class="h3 fw-700">
-                        {{ count(\App\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'delivered')->get()) }}
+                      {{ count(\App\Models\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'delivered')->get()) }}
                     </div>
                     <div class="opacity-50">{{ translate('Total sale')}}</div>
                 </div>
@@ -42,11 +42,11 @@
             <div class="bg-grad-2 text-white rounded-lg mb-4 overflow-hidden">
                 <div class="px-3 pt-3">
                     @php
-                        $orderDetails = \App\OrderDetail::where('seller_id', Auth::user()->id)->get();
+                        $orderDetails = \App\Models\OrderDetail::where('seller_id', Auth::user()->id)->get();
                         $total = 0;
                         foreach ($orderDetails as $key => $orderDetail) {
-                            if($orderDetail->order != null && $orderDetail->order->payment_status == 'paid' && $orderDetail->is_confirmed){
-                                $total += $orderDetail->price + $orderDetail->shipping_cost;
+                            if($orderDetail->order != null && $orderDetail->order->payment_status == 'paid'){
+                                $total += $orderDetail->price;
                             }
                         }
                     @endphp
@@ -63,14 +63,14 @@
             <div class="bg-grad-3 text-white rounded-lg mb-4 overflow-hidden">
               <div class="px-3 pt-3">
                   @php
-                  $orders = \App\Order::where('user_id', Auth::user()->id)->get();
+                  $orders = \App\Models\Order::where('user_id', Auth::user()->id)->get();
                   $total = 0;
                   foreach ($orders as $key => $order) {
                   $total += count($order->orderDetails);
                   }
                   @endphp
                   <div class="h3 fw-700">
-                      {{ count(\App\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'delivered')->get()) }}
+                      {{ count(\App\Models\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'delivered')->get()) }}
                   </div>
                   <div class="opacity-50">{{ translate('Successful orders')}}</div>
               </div>
@@ -82,7 +82,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-7">
+        <div class="col-md-8">
           <div class="card">
               <div class="card-header">
                   <h5 class="mb-0 h6">{{ translate('Orders') }}</h5>
@@ -91,25 +91,25 @@
                   <table class="table aiz-table mb-0">
                       <tr>
                           <td>{{ translate('Total orders')}}:</td>
-                          <td>{{ count(\App\OrderDetail::where('seller_id', Auth::user()->id)->get()) }}</strong></td>
+                          <td>{{ count(\App\Models\OrderDetail::where('seller_id', Auth::user()->id)->get()) }}</strong></td>
                       </tr>
                       <tr>
                           <td>{{ translate('Pending orders')}}:</td>
-                          <td>{{ count(\App\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'pending')->get()) }}</strong></td>
+                          <td>{{ count(\App\Models\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'pending')->get()) }}</strong></td>
                       </tr>
                       <tr>
                           <td>{{ translate('Cancelled orders')}}:</td>
-                          <td>{{ count(\App\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'cancelled')->get()) }}</strong></td>
+                          <td>{{ count(\App\Models\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'cancelled')->get()) }}</strong></td>
                       </tr>
                       <tr>
                           <td>{{ translate('Successful orders')}}:</td>
-                          <td>{{ count(\App\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'delivered')->get()) }}</strong></td>
+                          <td>{{ count(\App\Models\OrderDetail::where('seller_id', Auth::user()->id)->where('delivery_status', 'delivered')->get()) }}</strong></td>
                       </tr>
                   </table>
               </div>
           </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-4">
           <div class="card p-5 text-center">
               <div class="mb-3">
                   @if(Auth::user()->seller->verification_status == 0)
@@ -121,11 +121,11 @@
               @if(Auth::user()->seller->verification_info!=null && Auth::user()->seller->verification_status == 0)
               <span class="btn btn-primary">{{ translate('Menunggu Verifikasi')}}</span>
               <div class="alert alert-warning">
-                Verifikasi akan dilaksanakan oleh KADIN dan maximal dalam waktu 3 x 24jam
+                Verifikasi akan dilaksanakan oleh KADIN dan maksimal dalam waktu 3 x 24jam
               </div>
 
               @elseif(Auth::user()->seller->verification_status == 0)
-                  <a href="{{ route('shop.verify.history') }}" class="btn btn-primary">{{ translate('Verify Now')}}</a>
+                  <a href="{{ route('shop.verify') }}" class="btn btn-primary">{{ translate('Verify Now')}}</a>
               @endif
           </div>
         </div>
@@ -146,7 +146,7 @@
                       </tr>
                   </thead>
                   <tbody>
-                    @foreach (\App\Category::all() as $key => $category)
+                    @foreach (\App\Models\Category::all() as $key => $category)
                         @if(count($category->products->where('user_id', Auth::user()->id))>0)
                           <tr>
                               <td>{{ $category->getTranslation('name') }}</td>
@@ -163,22 +163,18 @@
           </div>
       </div>
       <div class="col-md-4">
-          @if (\App\Addon::where('unique_identifier', 'seller_subscription')->first() != null && \App\Addon::where('unique_identifier', 'seller_subscription')->first()->activated)
+          @if (addon_is_activated('seller_subscription'))
 
               <div class="card">
                   <div class="card-header">
                       <h6 class="mb-0">{{ translate('Purchased Package') }}</h6>
                   </div>
-                  @php
-                      $seller_package = \App\SellerPackage::find(Auth::user()->seller->seller_package_id);
-                  @endphp
                   <div class="card-body text-center">
-                      @if($seller_package != null)
-                        <img src="{{ uploaded_asset($seller_package->logo) }}" class="img-fluid mb-4 h-110px">
-                        <p class="mb-1 text-muted">{{ translate('Product Upload Remaining') }}: {{ Auth::user()->seller->remaining_uploads }} {{ translate('Times')}}</p>
-                        <p class="text-muted mb-1">{{ translate('Digital Product Upload Remaining') }}: {{ Auth::user()->seller->remaining_digital_uploads }} {{ translate('Times')}}</p>
+                      @if(Auth::user()->seller->seller_package)
+                        <img src="{{ uploaded_asset(Auth::user()->seller->seller_package->logo) }}" class="img-fluid mb-4 h-110px">
+                        <p class="mb-1 text-muted">{{ translate('Product Upload Limit') }}: {{ Auth::user()->seller->seller_package->product_upload_limit }} {{ translate('Times')}}</p>
                         <p class="text-muted mb-4">{{ translate('Package Expires at') }}: {{ Auth::user()->seller->invalid_at }}</p>
-                        <h6 class="fw-600 mb-3 text-primary">{{ translate('Current Package') }}: {{ $seller_package->name }}</h6>
+                        <h6 class="fw-600 mb-3 text-primary">{{ translate('Current Package') }}: {{ Auth::user()->seller->seller_package->name }}</h6>
                       @else
                           <h6 class="fw-600 mb-3 text-primary">{{translate('Package Not Found')}}</h6>
                       @endif
@@ -188,106 +184,24 @@
                   </div>
               </div>
           @endif
+
+          <div class="card mb-4 p-4 text-center">
+              <div class="h5 fw-600">{{ translate('Bank Account')}}</div>
+            @if (\App\Models\UserBankAccount::where('user_id', Auth::user()->id)->count() < 1)
+                <p>{{ translate('Please add your bank account')}}</p>
+            @else
+                <p>{{ translate('Manage your bank account')}}</p>
+            @endif
+              <a href="{{ route('bank.create') }}" class="btn btn-soft-primary">{{ translate('Go to Setting')}}</a>
+
+          </div>
+          
           <div class="card mb-4 p-4 text-center">
               <div class="h5 fw-600">{{ translate('Shop')}}</div>
               <p>{{ translate('Manage & organize your shop')}}</p>
               <a href="{{ route('shops.index') }}" class="btn btn-soft-primary">{{ translate('Go to setting')}}</a>
           </div>
-          <!--<div class="card mb-4 p-4 text-center">-->
-          <!--    <div class="h5 fw-600">{{ translate('Payment')}}</div>-->
-          <!--    <p>{{ translate('Configure your payment method')}}</p>-->
-          <!--    <a href="{{ route('profile') }}" class="btn btn-soft-primary">{{ translate('Configure Now')}}</a>-->
-          <!--</div>-->
       </div>
     </div>
 
-    @if(Auth::user()->user_type === 'seller' && !(boolean)Auth::user()->is_agree_tos_seller)
-        <!-- Modal TOS Customer -->
-        <div class="modal fade" id="modalTosSeller" tabindex="-1" role="dialog" aria-labelledby="modalTosSellerTitle" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLongTitle">Term of Service</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body" style="max-height:50vh">
-                        {!! \App\Page::find(5)->content !!}
-                    </div>
-                    <div class="modal-footer">
-                        <div class="mb-3">
-                            <label class="aiz-checkbox">
-                                <input type="checkbox" name="is_agree_tos_seller" value="1" id="checkbox_tos" required disabled>
-                                <span class=opacity-60>{{ translate('By signing up you agree to our terms and conditions.')}}</span>
-                                <span class="aiz-square-check"></span>
-                            </label>
-                        </div>
-                        <button type="button" id="saveButtonTos" class="btn btn-primary" data-dismiss="modal">Simpan</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <form action="" class="d-none" id="tos-form">
-
-        </form>
-    @endif
-@endsection
-@section('script')
-    <script>
-        $('#modalTosSeller').modal('show')
-
-        $('#modalTosSeller').on('shown.bs.modal', function () {
-            let elementModal = document.getElementById('modalTosSeller')
-            if(elementModal.getElementsByClassName('modal-body')[0].clientHeight <  elementModal.getElementsByClassName('modal-body')[0].scrollHeight){
-                $('#checkbox_tos').prop('disabled', true)
-                jQuery(function($) {
-                    $('.modal-body').on('scroll', function(event) {
-                        var element = event.target;
-                        console.log('scrollHeight : ' + element.scrollHeight)
-                        console.log('scrollTop : ' + element.scrollTop)
-                        console.log('clientHeight : ' + element.clientHeight)
-                        let rest = (element.scrollHeight - element.scrollTop) - element.clientHeight
-                        if (rest < 20)
-                        {
-                            $('#checkbox_tos').prop('disabled', false)
-                            $('#checkbox_tos').prop('checked', true)
-                            $('#tos-form').append(`
-                                <input type="checkbox" name="is_agree_tos_seller" value="1" class="d-none" checked>
-                            `)
-                        }
-                    });
-                });
-            }else if(elementModal.getElementsByClassName('modal-body')[0].clientHeight === elementModal.getElementsByClassName('modal-body')[0].scrollHeight){
-                $('#checkbox_tos').prop('disabled', false)
-                $('#checkbox_tos').prop('checked', false)
-                $('#checkbox_tos').on('click', function (event) {
-                    if($(this).is(':checked')){
-                        $('#tos-form').append(`
-                            <input id="checkbox_tos_in" type="checkbox" name="is_agree_tos_seller" value="1" class="d-none" checked>
-                        `)
-                    }else{
-                        $('#checkbox_tos_in').remove()
-                    }
-                })
-            }
-        })
-
-        $('#saveButtonTos').on('click', function(){
-
-            $.ajax({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                method: 'PUT',
-                url: "{{route('agree-with-tos.seller.save')}}",
-                data: {
-                    is_agree_tos_seller: $('input[name="is_agree_tos_seller"]').is(':checked')
-                },
-                success: function(data){
-                    console.log(data)
-                }
-            })
-        })
-    </script>
 @endsection

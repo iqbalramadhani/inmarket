@@ -20,6 +20,13 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label class="col-sm-3 col-from-label">{{translate('System Version')}}</label>
+                            <div class="col-sm-9">
+                                <input type="hidden" name="types[]" value="inamarket_version">
+                                <input type="text" name="inamarket_version" class="form-control" value="{{ get_setting('inamarket_version') }}">
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label class="col-sm-3 col-from-label">{{translate('System Logo - White')}}</label>
                             <div class="col-sm-9">
                                 <div class="input-group" data-toggle="aizuploader" data-type="image">

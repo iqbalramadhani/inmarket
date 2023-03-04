@@ -1,4 +1,4 @@
-<script src="//voguepay.com/js/voguepay.js"></script>
+<script src="//pay.voguepay.com/js/voguepay.js"></script>
 
 <script>
     closedFunction=function() {
@@ -29,7 +29,7 @@
          Voguepay.init({
              v_merchant_id: document.getElementById("merchant_id").value,
              total: '{{ Session::get('payment_data')['amount'] }}',
-             cur: '{{\App\Currency::findOrFail(get_setting('system_default_currency'))->code}}',
+             cur: '{{\App\Models\Currency::findOrFail(get_setting('system_default_currency'))->code}}',
              merchant_ref: 'ref123',
              loadText:'Custom load text',
              customer: {

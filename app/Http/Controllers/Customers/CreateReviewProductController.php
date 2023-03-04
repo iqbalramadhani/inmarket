@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Customers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
-use App\Product;
+use App\Models\Product;
 use Auth;
-use App\Order;
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class CreateReviewProductController extends Controller
@@ -39,7 +39,7 @@ class CreateReviewProductController extends Controller
     {
         $product = Product::where('slug', $slug)->firstOrFail();
         $order = Order::findOrFail($order_id);
-        $orderDetail = $order->orderDetails->where('product_id', $product->id)->first()->firstOrFail();
+        $orderDetail = $order->orderDetails->where('order_id', $order_id)->first();
 
         Review::create([
             'product_id' => $product->id,

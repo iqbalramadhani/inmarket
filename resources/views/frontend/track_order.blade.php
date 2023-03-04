@@ -87,12 +87,18 @@
                                 </tr>
                                 <tr>
                                     <td class="w-50 fw-600">{{ translate('Payment method')}}:</td>
-                                    <td>{{ ucfirst(str_replace('_', ' ', $order->payment_type)) }}</td>
+                                    <td>{{ translate(ucfirst(str_replace('_', ' ', $order->payment_type))) }}</td>
                                 </tr>
                                 <tr>
                                     <td class="w-50 fw-600">{{ translate('Delivery Status')}}:</td>
-                                    <td>{{ ucfirst(str_replace('_', ' ', $order->delivery_status)) }}</td>
+                                    <td>{{ translate(ucfirst(str_replace('_', ' ', $order->delivery_status))) }}</td>
                                 </tr>
+                                @if ($order->tracking_code)
+                                    <tr>
+                                        <td class="w-50 fw-600">{{ translate('Tracking code')}}:</td>
+                                        <td>{{ $order->tracking_code }}</td>
+                                    </tr>
+                                @endif
                             </table>
                         </div>
                     </div>

@@ -28,7 +28,9 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <label class="col-md-2 col-form-label">{{ translate('Shop Logo') }}</label>
+                    <label class="col-md-2 col-form-label">{{ translate('Shop Logo') }}
+                        <span class="d-block text-muted"><small>Maximum File 2MB</small></span>
+                    </label>
                     <div class="col-md-10">
                         <div class="input-group" data-toggle="aizuploader" data-type="image">
                             <div class="input-group-prepend">
@@ -57,19 +59,20 @@
                 <div class="row">
                     <label class="col-md-2 col-form-label">{{ translate('Shop Address') }} <span class="text-danger text-danger">*</span></label>
                     <div class="col-md-10">
-                        <input type="text" class="form-control mb-3" placeholder="{{ translate('Address')}}" name="address" value="{{ $shop->address }}" required>
+                        <input type="text" class="form-control mb-3" placeholder="{{ translate('Address')}}" name="address_laravolt" value="{{ $shop->address }}" required>
                     </div>
                 </div>
+
                 <div class="form-group row">
                     <label class="col-md-2 col-form-label">{{ translate('Province') }}</label>
                     <div class="col-md-10">
-                        <select class="form-control aiz-selectpicker" data-live-search="true" data-placeholder="{{translate('Select your province')}}" name="province" required>
+                        <select class="form-control aiz-selectpicker" data-live-search="true" data-placeholder="{{translate('Select your province')}}" name="province_laravolt" required>
                             <option selected disabled>Select Province</option>
-                            @foreach($locations['provinces'] as $key => $item)
-                            <option value="{{$item->province_id}}"
-                                @if($shop->province_id == $item->province_id) selected
+                            @foreach($laravolt_locations['provinces'] as $key => $item)
+                            <option value="{{$item->code}}"
+                                @if($shop->indonesia_province_id == $item->code) selected
                                 @endif
-                                >{{$item->province_name}}
+                                >{{$item->name}}
                             </option>
                             @endforeach
                         </select>
@@ -79,33 +82,44 @@
                 <div class="form-group row">
                     <label class="col-md-2 col-form-label">{{ translate('City')}}</label>
                     <div class="col-md-10">
-                        <select class="form-control aiz-selectpicker" data-live-search="true" name="city">
-                            @foreach($locations['cities']  as $key => $item)
-                                <option value="{{$item->city_id}}"
-                                    @if($shop->city_id == $item->city_id) selected
+                        <select class="form-control aiz-selectpicker" data-live-search="true" name="city_laravolt">
+                            @foreach($laravolt_locations['cities']  as $key => $item)
+                                <option value="{{$item->code}}"
+                                    @if($shop->indonesia_city_id == $item->code) selected
                                     @endif
-                                    >{{$item->city_name}}
+                                    >{{$item->name}}
                                 </option>
                                 @endforeach
-
                         </select>
                     </div>
                 </div>
 
+                <div class="form-group row">
+                    <label class="col-md-2 col-form-label">{{ translate('District')}}</label>
+                    <div class="col-md-10">
+                        <select class="form-control aiz-selectpicker" data-live-search="true" name="district_laravolt">
+                            @foreach($laravolt_locations['districts']  as $key => $item)
+                                <option value="{{$item->code}}"
+                                    @if($shop->indonesia_district_id == $item->code) selected
+                                    @endif
+                                    >{{$item->name}}
+                                </option>
+                                @endforeach
+                        </select>
+                    </div>
+                </div>
 
                 <div class="form-group row">
-                <label class="col-md-2 col-form-label">{{ translate('Sub District')}}</label>
+                    <label class="col-md-2 col-form-label">{{ translate('Sub District')}}</label>
                     <div class="col-md-10">
-                        <select class="form-control aiz-selectpicker" name="sub_district">
-                        @if($locations['cities']!=null)
-                            @foreach($locations['sub_districts'] as $key => $item)
-                                <option value="{{$item->subdistrict_id}}"
-                                    @if($shop->subdistrict_id == $item->subdistrict_id) selected
+                        <select class="form-control aiz-selectpicker" data-live-search="true" name="sub_district_laravolt">
+                            @foreach($laravolt_locations['villages']  as $key => $item)
+                                <option value="{{$item->code}}"
+                                    @if($shop->indonesia_subdistrict_id == $item->code) selected
                                     @endif
-                                    >{{$item->subdistrict_name}}
+                                    >{{$item->name}}
                                 </option>
-                            @endforeach
-                        @endif
+                                @endforeach
                         </select>
                     </div>
                 </div>
@@ -113,9 +127,10 @@
                 <div class="form-group row">
                     <label class="col-md-2 col-form-label">{{ translate('Postal Code')}} </label>
                     <div class="col-md-10">
-                                <input type="text" value="{{$shop->postal_code}}" class="form-control" name="postal_code">
+                        <input type="text" value="{{$shop->postal_code}}" class="form-control" name="postal_code_laravolt">
                     </div>
                 </div>
+                
                 @if (get_setting('shipping_type') == 'seller_wise_shipping')
                     <div class="row">
                         <div class="col-md-2">
@@ -131,7 +146,7 @@
                     <label class="col-md-2 col-form-label">{{ translate('Pickup Points') }}</label>
                     <div class="col-md-10">
                         <select class="form-control aiz-selectpicker" data-placeholder="{{ translate('Select Pickup Point') }}" id="pick_up_point" name="pick_up_point_id[]" multiple>
-                            @foreach (\App\PickupPoint::all() as $pick_up_point)
+                            @foreach (\App\Models\PickupPoint::all() as $pick_up_point)
                                 @if (Auth::user()->shop->pick_up_point_id != null)
                                     <option value="{{ $pick_up_point->id }}" @if (in_array($pick_up_point->id, json_decode(Auth::user()->shop->pick_up_point_id))) selected @endif>{{ $pick_up_point->getTranslation('name') }}</option>
                                 @else
@@ -162,6 +177,62 @@
         </div>
     </div>
 
+    {{-- Rekening Bank --}}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0 h6">{{ translate('Rekening Bank') }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-2 text-right">
+                <a href="{{route('bank.create')}}" class="btn btn-sm btn-primary">{{translate('Create New')}}</a>
+            </div>
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th>No</th>
+                        <th>Bank Name</th>
+                        <th>Account Number</th>
+                        <th>Account Name</th>
+                        <td></td>
+                    </tr>
+                    @php
+                        $i = 1;
+                    @endphp
+                    @forelse(\App\Models\UserBankAccount::where('user_id', $shop->user->id)->get() as $account)
+                        <tr>
+                            <td>
+                                {{$i}}
+                            </td>
+                            <td>
+                                {{$account->bank_name}}
+                            </td>
+                            <td>
+                                {{$account->account_number}}
+                            </td>
+                            <td>
+                                {{$account->account_name}}
+                            </td>
+                            <td>
+                                <a href="{{route('bank.edit', ['id' => $account->id])}}" class="btn btn-xs btn-warning">Edit</a>
+                                <a href="{{route('bank.destroy', ['id' => $account->id])}}" class="btn btn-xs btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                        @php $i++; @endphp
+                    @empty
+                        <tr>
+                            <td colspan="5" align="center">{{ translate('No Data')}}</td>
+                        </tr>
+                    @endforelse
+                    <!-- <tr>
+                        <td>
+                            {{$shop->user}}
+                        </td>
+                    </tr> -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     {{-- Banner Settings --}}
     <div class="card">
         <div class="card-header">
@@ -174,7 +245,9 @@
                 @csrf
 
                 <div class="row mb-3">
-                    <label class="col-md-2 col-form-label">{{ translate('Banners') }} (1500x450)</label>
+                    <label class="col-md-2 col-form-label">{{ translate('Banners') }} (1500x450)
+                        <span class="d-block text-muted"><small>Maximum File 2MB</small></span>
+                    </label>
                     <div class="col-md-10">
                         <div class="input-group" data-toggle="aizuploader" data-type="image" data-multiple="true">
                             <div class="input-group-prepend">
@@ -196,7 +269,7 @@
         </div>
     </div>
 
-    <form class="" id="shop"  action="{{ route('shop.verify.update') }}" method="POST" enctype="multipart/form-data">
+    <form class="" id="shop"  action="{{route('shop.verify.update') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="card">
             <div class="card-header">
@@ -225,14 +298,14 @@
                     @elseif($element->type == 'file')
                         <div class="row">
                             <div class="col-md-4">
-                                <label>{{ $element->label }} <span class="text-primary">*</span>
+                                <label>{{ $element->label }}
                                     <span class="d-block text-muted"><small>Maximum File 2MB</small></span>
                                 </label>
                             </div>
                             <div class="col-md-8">
                                 <div class="form-group">
                                     <input type="{{ $element->type }}" name="element_{{ $key }}"
-                                    id="file-{{ $key }}" class="form-control-file form-control">
+                                    id="file-{{ $key }}" class="form-control-file form-control" disabled>
                                     <span class="invalid-feedback" role="alert">
                                     <strong>{{$element->label}} {{translate('cannot be empty')}}</strong>
                                     </span>
@@ -307,6 +380,98 @@
         </div>
     </form>
 
+    {{-- Pengaturan Kurir --}}
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0 h6">Pengaturan Kurir</h4>
+        </div>
+        <div class="card-body">
+            <form action="{{route('seller.setting.courier.update', $shop->id)}}" method="POST" enctype="multipart/form-data">
+            @method('PUT')
+            @csrf
+            <div class="form-box-content p-3">
+                <div class="row mb-3">
+                    <label class="col-md-2 col-form-label">{{ translate('Select Courier') }}</label>
+                        <div class="col-md-10">
+                            <select class="form-control aiz-selectpicker" data-live-search="true" name="couriers[]" multiple="multiple">
+                                @foreach($couriers as $courier)
+                                    <option value="{{$courier->code}}" @if(in_array($courier->code, (array)json_decode($shop->couriers))) selected @endif>{{$courier->name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                </div>
+
+                <div class="row">
+                    <label class="col-md-2 col-form-label">{{ translate('Pickup Address') }} <span class="text-danger text-danger">*</span></label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control mb-3" placeholder="{{ translate('Address')}}" name="address" value="{{ $shop->address_pickup }}" required>
+                    </div>
+                </div>
+            
+                    <div class="form-group row">
+                        <label class="col-md-2 col-form-label">{{ translate('Province') }}</label>
+                        <div class="col-md-10">
+                            <select class="form-control aiz-selectpicker" data-live-search="true" data-placeholder="{{translate('Select your province')}}" name="province" required>
+                                <option selected disabled>Select Province</option>
+                                @foreach($locations['provinces'] as $key => $item)
+                                <option value="{{$item->province_id}}"
+                                    @if($shop->province_id == $item->province_id) selected
+                                    @endif
+                                    >{{$item->province_name}}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-md-2 col-form-label">{{ translate('City')}}</label>
+                        <div class="col-md-10">
+                            <select class="form-control aiz-selectpicker" data-live-search="true" name="city">
+                                @foreach($locations['cities']  as $key => $item)
+                                    <option value="{{$item->city_id}}"
+                                        @if($shop->city_id == $item->city_id) selected
+                                        @endif
+                                        >{{$item->city_name}}
+                                    </option>
+                                    @endforeach
+
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group row">
+                    <label class="col-md-2 col-form-label">{{ translate('Sub District')}}</label>
+                        <div class="col-md-10">
+                            <select class="form-control aiz-selectpicker" name="sub_district">
+                            @if($locations['cities']!=null)
+                                @foreach($locations['sub_districts'] as $key => $item)
+                                    <option value="{{$item->subdistrict_id}}"
+                                        @if($shop->subdistrict_id == $item->subdistrict_id) selected
+                                        @endif
+                                        >{{$item->subdistrict_name}}
+                                    </option>
+                                @endforeach
+                            @endif
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-md-2 col-form-label">{{ translate('Postal Code')}} </label>
+                        <div class="col-md-10">
+                                <input type="text" value="{{$shop->postal_code_pickup}}" class="form-control" name="postal_code">
+                        </div>
+                    </div>
+                </div>
+                        <div class="form-group mb-0 text-right">
+                            <button type="submit" class="btn btn-sm btn-primary">{{translate('Save')}}</button>
+                        </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Social Media Link --}}
     <div class="card">
         <div class="card-header">
@@ -354,85 +519,6 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            Pengaturan Kurir
-        </div>
-        <div class="card-body">
-                    <form action="{{route('seller.setting.courier.update', $shop->id)}}" method="POST" enctype="multipart/form-data">
-                        @method('PUT')
-                        @csrf
-            <div class="form-box-content p-3">
-                <div class="row mb-3">
-                    <label class="col-md-2 col-form-label">Pilihan Kurir</label>
-                        <div class="col-md-10">
-                            <select class="form-control" id="selectCourier" name="couriers[]" multiple="multiple">
-                                @foreach($couriers as $courier)
-                                    <option value="{{$courier->code}}" @if(in_array($courier->code, (array)json_decode($shop->couriers))) selected @endif>{{$courier->name}}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                </div>
-            </div>
-                        <div class="form-group mb-0 text-right">
-                            <button type="submit" class="btn btn-sm btn-primary">{{translate('Save')}}</button>
-                        </div>
-                    </form>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">
-            Rekening Bank
-        </div>
-        <div class="card-body">
-            <div class="mb-2 text-right">
-                <a href="{{route('bank.create')}}" class="btn btn-sm btn-primary">{{translate('Create New')}}</a>
-            </div>
-            <table class="table">
-                <tbody>
-                    <tr>
-                        <th>No</th>
-                        <th>Bank Name</th>
-                        <th>Account Number</th>
-                        <th>Account Name</th>
-                        <td></td>
-                    </tr>
-                    @php
-                        $i = 1;
-                    @endphp
-                    @foreach(\App\Models\UserBankAccount::where('user_id', $shop->user->id)->get() as $account)
-                        <tr>
-                            <td>
-                                {{$i}}
-                            </td>
-                            <td>
-                                {{$account->bank_name}}
-                            </td>
-                            <td>
-                                {{$account->account_number}}
-                            </td>
-                            <td>
-                                {{$account->account_name}}
-                            </td>
-                            <td>
-                                <a href="{{route('bank.edit', ['id' => $account->id])}}" class="btn btn-xs btn-warning">Edit</a>
-                                <a href="{{route('bank.destroy', ['id' => $account->id])}}" class="btn btn-xs btn-danger">Delete</a>
-                            </td>
-                        </tr>
-                        @php
-                            $i++;
-                        @endphp
-                    @endforeach
-                    <!-- <tr>
-                        <td>
-                            {{$shop->user}}
-                        </td>
-                    </tr> -->
-                </tbody>
-            </table>
-        </div>
-    </div>
 
 @endsection
 
@@ -453,21 +539,21 @@
                 let ktp = $('#file-7');
                 let pemilik_ktp = $('#file-8');
 
-                if(!!ktp.val()) {
-                    ktp.removeClass('is-invalid');
-                } else {
-                    ktp.addClass('is-invalid');
-                    AIZ.plugins.notify('danger', 'Photo KTP {{translate("cannot be Empty")}}');
-                    evt.preventDefault();
-                }
+                // if(!!ktp.val()) {
+                //     ktp.removeClass('is-invalid');
+                // } else {
+                //     ktp.addClass('is-invalid');
+                //     AIZ.plugins.notify('danger', 'Photo KTP {{translate("cannot be Empty")}}');
+                //     evt.preventDefault();
+                // }
 
-                if(!!pemilik_ktp.val()) {
-                    pemilik_ktp.removeClass('is-invalid');
-                } else {
-                    pemilik_ktp.addClass('is-invalid');
-                    AIZ.plugins.notify('danger', 'Photo KTP + Selfie Penanggung Jawab {{translate("cannot be Empty")}}');
-                    evt.preventDefault();
-                }
+                // if(!!pemilik_ktp.val()) {
+                //     pemilik_ktp.removeClass('is-invalid');
+                // } else {
+                //     pemilik_ktp.addClass('is-invalid');
+                //     AIZ.plugins.notify('danger', 'Photo KTP + Selfie Penanggung Jawab {{translate("cannot be Empty")}}');
+                //     evt.preventDefault();
+                // }
                 $("#reg-form").submit();
             });
         });
@@ -492,7 +578,7 @@
             $("select[name='element_14[]']").attr('disabled', false);
         }
 
-$(document).on('change', '[name=country]', function() {
+    $(document).on('change', '[name=country]', function() {
         var country = $(this).val();
         getProvince(country);
     });
@@ -519,6 +605,26 @@ $(document).on('change', '[name=country]', function() {
     //     var country = $(this).val();
     //     getProvince(country);
     // });
+
+    $(document).on('change', 'select[name=province_laravolt]', function() {
+        var item = $(this).val();
+        getCityLaravolt(item);
+    });
+
+    $(document).on('change', 'select[name=city_laravolt]', function() {
+        var item = $(this).val();
+        getDistrictLaravolt(item);
+    });
+
+    $(document).on('change', 'select[name=district_laravolt]', function() {
+        var item = $(this).val();
+        getSubDistrictLaravolt(item);
+    });
+
+    $(document).on('change', 'select[name=sub_district_laravolt]', function() {
+        var item = $(this).val();
+        getPostalCode();
+    });
 
     function getProvince(country) {
         $('select[name="district"]').html($('<option/>').text('Select District'));
@@ -628,9 +734,45 @@ $(document).on('change', '[name=country]', function() {
         })
     }
 
-    function getPostalCode(id) {
-        $('[name="postal_code"]').html($('<option/>').text('Select Postal Code'));
-        $('[name="postal_code"]').attr('disabled', false);
+    function getCityLaravolt(code) {
+        $('select[name="city_laravolt"]').html($('<option/>').text('Select City'));
+        $('select[name="city_laravolt"]').attr('disabled', false);
+
+        $('select[name="district_laravolt"]').html($('<option/>').text('Select District'));
+        $('select[name="district_laravolt"]').attr('disabled', true);
+        $('select[name="sub_district_laravolt"]').html($('<option/>').text('Select Sub District'));
+        $('select[name="sub_district_laravolt"]').attr('disabled', true);
+        $('text[name="postal_code_laravolt"]').html($('<option/>').text('Select Postal Code'));
+        $('text[name="postal_code_laravolt"]').attr('disabled', true);
+
+        // $('input[type="submit"]').attr('disabled', true);
+        AIZ.plugins.bootstrapSelect('refresh');
+
+        $.ajax({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            url: "{{url('api/v3/location/city')}}/"+code,
+            type: 'GET',
+            success: function(response) {
+                $.each(response, function(i, data){
+                    $('[name="city_laravolt"]').append($('<option/>').text(data.name).val(data.code));
+                });
+                AIZ.plugins.bootstrapSelect('refresh');
+            }
+        })
+    }
+
+    function getDistrictLaravolt(code) {
+        $('select[name="district_laravolt"]').html($('<option/>').text('Select District'));
+        $('select[name="district_laravolt"]').attr('disabled', false);
+        $('select[name="sub_district_laravolt"]').html($('<option/>').text('Select Sub District'));
+        $('select[name="sub_district_laravolt"]').attr('disabled', true);
+        $('text[name="postal_code_laravolt"]').html($('<option/>').text('Select Postal Code'));
+        $('text[name="postal_code_laravolt"]').attr('disabled', true);
+
+
+        // $('input[type="submit"]').attr('disabled', true);
 
         AIZ.plugins.bootstrapSelect('refresh');
 
@@ -638,38 +780,46 @@ $(document).on('change', '[name=country]', function() {
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            url: "{{url('api/v1/location/postal-code')}}/"+id,
+            url: "{{url('api/v3/location/district')}}/"+code,
             type: 'GET',
             success: function(response) {
                 $.each(response, function(i, data){
-                    $('[name="postal_code"]').append($('<option/>').text(data.kodepos).val(data.id));
+                    $('[name="district_laravolt"]').append($('<option/>').text(data.name).val(data.code));
                 });
                 AIZ.plugins.bootstrapSelect('refresh');
             }
         })
     }
 
-    function get_city(country) {
-        $('[name="city"]').html("");
+    function getSubDistrictLaravolt(code) {
+        $('select[name="sub_district_laravolt"]').html($('<option/>').text('Select Sub District'));
+        $('select[name="sub_district_laravolt"]').attr('disabled', false);
+        $('text[name="postal_code_laravolt"]').html($('<option/>').text('Select Postal Code'));
+        $('text[name="postal_code_laravolt"]').attr('disabled', false);
+
+        // $('input[type="submit"]').attr('disabled', true);
+        AIZ.plugins.bootstrapSelect('refresh');
+
         $.ajax({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
-            url: "{{route('get-city')}}",
-            type: 'POST',
-            data: {
-                country_name: country
-            },
-            success: function (response) {
-                var obj = JSON.parse(response);
-                console.log(obj);
-                if(obj != '') {
-                    $('[name="city"]').html(obj);
-                    AIZ.plugins.bootstrapSelect('refresh');
-                }
+            url: "{{url('api/v3/location/sub-district')}}/"+code,
+            type: 'GET',
+            success: function(response) {
+                $.each(response, function(i, data){
+                    $('[name="sub_district_laravolt"]').append($('<option/>').text(data.name).val(data.code));
+                });
+                AIZ.plugins.bootstrapSelect('refresh');
             }
-        });
+        })
     }
+
+    function getPostalCode() {
+        $('[name="postal_code_laravolt"]').attr('disabled', false);
+    }
+
+    
 
 $("#selectCourier").select2({
     tags: true

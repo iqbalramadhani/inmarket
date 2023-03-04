@@ -1,27 +1,4 @@
 @extends('frontend.layouts.app')
-@section('style')
-    <style>
-        .float-wa{
-            position:fixed;
-            width:60px;
-            height:60px;
-            bottom:40px;
-            right:40px;
-            background-color:#25d366;
-            color:#FFF;
-            border-radius:50px;
-            text-align:center;
-            font-size:30px;
-            box-shadow: 2px 2px 3px #999;
-            z-index:100;
-        }
-
-        .my-float-wa{
-            margin-top:16px;
-        }
-    </style>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-@endsection
 
 @section('content')
     {{-- Categories , Sliders . Today's deal --}}
@@ -33,8 +10,7 @@
                 </div>
 
                 @php
-                    $num_todays_deal = count(filter_products(\App\Product::where('published', 1)->where('todays_deal', 1 ))->get());
-                    $featured_categories = \App\Category::where('featured', 1)->get();
+                    $num_todays_deal = count($todays_deal_products);
                 @endphp
 
                 <div class="@if($num_todays_deal > 0) col-lg-7 @else col-lg-9 @endif">
@@ -92,7 +68,7 @@
                         </div>
                         <div class="c-scrollbar-light overflow-auto h-lg-400px p-2 bg-primary rounded-bottom">
                             <div class="gutters-5 lg-no-gutters row row-cols-2 row-cols-lg-1">
-                            @foreach (filter_products(\App\Product::where('published', 1)->where('todays_deal', '1'))->get() as $key => $product)
+                            @foreach ($todays_deal_products as $key => $product)
                                 @if ($product != null)
                                 <div class="col mb-2">
                                     <a href="{{ route('product', $product->slug) }}" class="d-block p-2 text-reset bg-white h-100 rounded">
@@ -155,7 +131,7 @@
 
     {{-- Flash Deal --}}
     @php
-        $flash_deal = \App\FlashDeal::where('status', 1)->where('featured', 1)->first();
+        $flash_deal = \App\Models\FlashDeal::where('status', 1)->where('featured', 1)->first();
     @endphp
     @if($flash_deal != null && strtotime(date('Y-m-d H:i:s')) >= $flash_deal->start_date && strtotime(date('Y-m-d H:i:s')) <= $flash_deal->end_date)
     <section class="mb-4">
@@ -171,9 +147,9 @@
                 </div>
 
                 <div class="aiz-carousel gutters-10 half-outside-arrow" data-items="6" data-xl-items="5" data-lg-items="4"  data-md-items="3" data-sm-items="2" data-xs-items="2" data-arrows='true'>
-                    @foreach ($flash_deal->flash_deal_products as $key => $flash_deal_product)
+                    @foreach ($flash_deal->flash_deal_products->take(20) as $key => $flash_deal_product)
                         @php
-                            $product = \App\Product::find($flash_deal_product->product_id);
+                            $product = \App\Models\Product::find($flash_deal_product->product_id);
                         @endphp
                         @if ($product != null && $product->published != 0)
                             <div class="carousel-box">
@@ -188,6 +164,32 @@
     @endif
 
 
+    <div id="section_newest">
+        @if (count($newest_products) > 0)
+            <section class="mb-4">
+                <div class="container">
+                    <div class="px-2 py-4 px-md-4 py-md-3 bg-white shadow-sm rounded">
+                        <div class="d-flex mb-3 align-items-baseline border-bottom">
+                            <h3 class="h5 fw-700 mb-0">
+                                <span class="border-bottom border-primary border-width-2 pb-3 d-inline-block">
+                                    {{ translate('New Products') }}
+                                </span>
+                            </h3>
+                            <a href="{{ route('search', ['filter'=>'new-product']) }}" class="ml-auto mr-0 btn btn-primary btn-sm shadow-md">{{ translate('View More') }}</a>
+                        </div>
+                        <div class="aiz-carousel gutters-10 half-outside-arrow" data-items="6" data-xl-items="5" data-lg-items="4"  data-md-items="3" data-sm-items="2" data-xs-items="2" data-arrows='true'>
+                            @foreach ($newest_products as $key => $new_product)
+                            <div class="carousel-box">
+                                @include('frontend.partials.product_box_1',['product' => $new_product])
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>   
+        @endif
+    </div>
+
     {{-- Featured Section --}}
     <div id="section_featured">
 
@@ -199,7 +201,7 @@
     </div>
 
     <!-- Auction Product -->
-    @if(addon_activated('auction'))
+    @if(addon_is_activated('auction'))
         <div id="auction_products">
 
         </div>
@@ -235,7 +237,7 @@
     {{-- Classified Product --}}
     @if(get_setting('classified_product') == 1)
         @php
-            $classified_products = \App\CustomerProduct::where('status', '1')->where('published', '1')->take(10)->get();
+            $classified_products = \App\Models\CustomerProduct::where('status', '1')->where('published', '1')->take(10)->get();
         @endphp
            @if (count($classified_products) > 0)
                <section class="mb-4">
@@ -308,11 +310,9 @@
     @endif
 
     {{-- Best Seller --}}
-    @if (get_setting('vendor_system_activation') == 1)
     <div id="section_best_sellers">
 
     </div>
-    @endif
 
     {{-- Top 10 categories and Brands --}}
     @if (get_setting('top10_categories') != null && get_setting('top10_brands') != null)
@@ -330,7 +330,7 @@
                         <div class="row gutters-5">
                             @php $top10_categories = json_decode(get_setting('top10_categories')); @endphp
                             @foreach ($top10_categories as $key => $value)
-                                @php $category = \App\Category::find($value); @endphp
+                                @php $category = \App\Models\Category::find($value); @endphp
                                 @if ($category != null)
                                     <div class="col-sm-6">
                                         <a href="{{ route('products.category', $category->slug) }}" class="bg-white border d-block text-reset rounded p-2 hov-shadow-md mb-2">
@@ -369,7 +369,7 @@
                         <div class="row gutters-5">
                             @php $top10_brands = json_decode(get_setting('top10_brands')); @endphp
                             @foreach ($top10_brands as $key => $value)
-                                @php $brand = \App\Brand::find($value); @endphp
+                                @php $brand = \App\Models\Brand::find($value); @endphp
                                 @if ($brand != null)
                                     <div class="col-sm-6">
                                         <a href="{{ route('products.brand', $brand->slug) }}" class="bg-white border d-block text-reset rounded p-2 hov-shadow-md mb-2">
@@ -402,12 +402,6 @@
     </section>
     @endif
 
-    @if (get_setting('show_whatsapp_popup') != null && get_setting('show_whatsapp_popup') === 'on')
-    <a href="https://api.whatsapp.com/send?phone={{get_setting('whatsapp_number')}}&text={{get_setting('whatsapp_text')}}" class="float-wa" target="_blank">
-        <i class="fa fa-whatsapp my-float-wa"></i>
-    </a>
-    @endif
-
 @endsection
 
 @section('script')
@@ -429,13 +423,10 @@
                 $('#section_home_categories').html(data);
                 AIZ.plugins.slickCarousel();
             });
-
-            @if (get_setting('vendor_system_activation') == 1)
             $.post('{{ route('home.section.best_sellers') }}', {_token:'{{ csrf_token() }}'}, function(data){
                 $('#section_best_sellers').html(data);
                 AIZ.plugins.slickCarousel();
             });
-            @endif
         });
     </script>
 @endsection

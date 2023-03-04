@@ -51,7 +51,7 @@
                     <tbody>
                         @foreach ($orders as $key => $order_id)
                             @php
-                                $order = \App\Order::find($order_id->id);
+                                $order = \App\Models\Order::find($order_id->id);
                             @endphp
                             @if($order != null)
                                 <tr>
@@ -66,13 +66,13 @@
                                     </td>
                                     <td>
                                         @if ($order->user_id != null)
-                                            {{ $order->user->name }}
+                                            {{ optional($order->user)->name }}
                                         @else
                                             Guest ({{ $order->guest_id }})
                                         @endif
                                     </td>
                                     <td>
-                                        {{ single_price($order->grand_total) }}
+                                        {{ format_price($order->grand_total) }}
                                     </td>
                                     <td>
                                         @if($order->complain()->get()->isNotEmpty() && $order->complain()->first()->status!= 'completed')
@@ -85,7 +85,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($order->orderDetails->where('seller_id', Auth::user()->id)->first()->payment_status == 'paid')
+                                        @if ($order->payment_status == 'paid')
                                             <span class="badge badge-inline badge-success">{{ translate('Paid')}}</span>
                                         @else
                                             <span class="badge badge-inline badge-danger">{{ translate('Unpaid')}}</span>
@@ -148,7 +148,7 @@
 
 @section('script')
     <script type="text/javascript">
-
+        
         function show_order_details(order_id)
         {
             $('#order-details-modal-body').html(null);
@@ -161,6 +161,7 @@
                 $('#order-details-modal-body').html(data);
                 $('#order_details').modal();
                 $('.c-preloader').hide();
+                AIZ.plugins.bootstrapSelect('refresh');
             });
         }
         function sort_orders(el){

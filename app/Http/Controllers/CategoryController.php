@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Category;
-use App\HomeCategory;
-use App\Product;
-use App\Language;
-use App\CategoryTranslation;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\CategoryTranslation;
 use App\Utility\CategoryUtility;
 use Illuminate\Support\Str;
+use Cache;
 
 class CategoryController extends Controller
 {
@@ -21,7 +20,6 @@ class CategoryController extends Controller
     public function index(Request $request)
     {
         $sort_search =null;
-//        $categories = Category::orderBy('name', 'asc');
         $categories = Category::orderBy('order_level', 'desc');
         if ($request->has('search')){
             $sort_search = $request->search;
@@ -83,6 +81,8 @@ class CategoryController extends Controller
         }
 
         $category->save();
+
+        $category->attributes()->sync($request->filtering_attributes);
 
         $category_translation = CategoryTranslation::firstOrNew(['lang' => env('DEFAULT_LANGUAGE'), 'category_id' => $category->id]);
         $category_translation->name = $request->name;
@@ -178,10 +178,13 @@ class CategoryController extends Controller
 
         $category->save();
 
+        $category->attributes()->sync($request->filtering_attributes);
+
         $category_translation = CategoryTranslation::firstOrNew(['lang' => $request->lang, 'category_id' => $category->id]);
         $category_translation->name = $request->name;
         $category_translation->save();
 
+        Cache::forget('featured_categories');
         flash(translate('Category has been updated successfully'))->success();
         return back();
     }
@@ -195,6 +198,7 @@ class CategoryController extends Controller
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
+        $category->attributes()->detach();
 
         // Category Translations Delete
         foreach ($category->category_translations as $key => $category_translation) {
@@ -207,6 +211,7 @@ class CategoryController extends Controller
         }
 
         CategoryUtility::delete_category($id);
+        Cache::forget('featured_categories');
 
         flash(translate('Category has been deleted successfully'))->success();
         return redirect()->route('categories.index');
@@ -216,9 +221,8 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($request->id);
         $category->featured = $request->status;
-        if($category->save()){
-            return 1;
-        }
-        return 0;
+        $category->save();
+        Cache::forget('featured_categories');
+        return 1;
     }
 }

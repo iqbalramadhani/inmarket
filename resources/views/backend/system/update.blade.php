@@ -6,7 +6,7 @@
 			<div class="card">
 				<div class="card-header d-block d-md-flex">
 					<h3 class="h6 mb-0">{{ translate('Update your system') }}</h3>
-					<span>{{ translate('Current verion') }}: {{ get_setting('current_version') }}</span>
+					<span>{{ translate('Current verion') }}: {{ get_setting('inamarket_version') }}</span>
 				</div>
 				<div class="card-body">
 					<div class="alert alert-info mb-5">

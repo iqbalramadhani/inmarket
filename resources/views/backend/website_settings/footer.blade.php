@@ -10,7 +10,7 @@
     	</div>
     </div>
     <ul class="nav nav-tabs nav-fill border-light">
-        @foreach (\App\Language::all() as $key => $language)
+        @foreach (\App\Models\Language::all() as $key => $language)
             <li class="nav-item">
                 <a class="nav-link text-reset @if ($language->code == $lang) active @else bg-soft-dark border-light border-left-0 @endif py-3" href="{{ route('website.footer', ['lang'=> $language->code] ) }}">
                     <img src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" height="11" class="mr-1">
@@ -42,6 +42,18 @@
     			                        <div class="form-control file-amount">{{ translate('Choose File') }}</div>
     									<input type="hidden" name="types[]" value="footer_logo">
     			                        <input type="hidden" name="footer_logo" class="selected-files" value="{{ get_setting('footer_logo') }}">
+    			                    </div>
+    								<div class="file-preview"></div>
+    			                </div>
+								<div class="form-group">
+    			                    <label class="form-label" for="signinSrEmail">{{ translate('Footer Logo Right') }}</label>
+    			                    <div class="input-group " data-toggle="aizuploader" data-type="image">
+    			                        <div class="input-group-prepend">
+    			                            <div class="input-group-text bg-soft-secondary font-weight-medium">{{ translate('Browse') }}</div>
+    			                        </div>
+    			                        <div class="form-control file-amount">{{ translate('Choose File') }}</div>
+    									<input type="hidden" name="types[]" value="footer_logo_right">
+    			                        <input type="hidden" name="footer_logo_right" class="selected-files" value="{{ get_setting('footer_logo_right') }}">
     			                    </div>
     								<div class="file-preview"></div>
     			                </div>

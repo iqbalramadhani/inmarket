@@ -1,6 +1,46 @@
 @extends('frontend.layouts.app')
 
 @section('content')
+<section class="pt-5 mb-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-xl-8 mx-auto">
+                <div class="row aiz-steps arrow-divider">
+                    <div class="col done">
+                        <div class="text-center text-success">
+                            <i class="la-3x mb-2 las la-shopping-cart"></i>
+                            <h3 class="fs-14 fw-600 d-none d-lg-block">{{ translate('1. My Cart')}}</h3>
+                        </div>
+                    </div>
+                    <div class="col done">
+                        <div class="text-center text-success">
+                            <i class="la-3x mb-2 las la-map"></i>
+                            <h3 class="fs-14 fw-600 d-none d-lg-block">{{ translate('2. Shipping info')}}</h3>
+                        </div>
+                    </div>
+                    <div class="col done">
+                        <div class="text-center text-success">
+                            <i class="la-3x mb-2 las la-truck"></i>
+                            <h3 class="fs-14 fw-600 d-none d-lg-block">{{ translate('3. Delivery info')}}</h3>
+                        </div>
+                    </div>
+                    <div class="col active">
+                        <div class="text-center text-success">
+                            <i class="la-3x mb-2 las la-credit-card"></i>
+                            <h3 class="fs-14 fw-600 d-none d-lg-block">{{ translate('4. Payment')}}</h3>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="text-center text-primary">
+                            <i class="la-3x mb-2 opacity-50 las la-check-circle"></i>
+                            <h3 class="fs-14 fw-600 d-none d-lg-block opacity-50">{{ translate('5. Confirmation')}}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 <div>
     <section class="gry-bg py-4">
         <div class="container">
@@ -16,7 +56,8 @@
 
 
                                 <span class="alert alert-success d-block">{{translate('Pembayaran '.$sub_type.' berhasil dibuat, silahkan dilanjutkan')}}</span>
-                                <a id="continue_oyid_link" href="{{$result->url ?? route('wallet.index')}}" {{(isset($result->url)) ? "target='_blank'" : ""}} class="btn btn-sm btn-primary">{{translate('Lanjutkan')}}</a>
+                                <a id="continue_oyid_link" class="showModalPayment btn btn-xs btn-primary">{{translate('Bayar')}}</a>
+                                <!-- <a id="continue_oyid_link" href="{{$result->url ?? route('wallet.index')}}" {{(isset($result->url)) ? "target='_blank'" : ""}} class="btn btn-sm btn-primary">{{translate('Lanjutkan')}}</a> -->
                                 <!-- <span class="alert alert-success ">{{translate('Payment has been created successfully, you will be redirected into payment page')}}</span> -->
                             
                                 <span class="d-block mt-5">{{translate('Jika sudah melakukan pembayaran, silahkan melakukan konfirmasi pembayaran')}}</span>
@@ -86,8 +127,9 @@
                                             </strong>
                                         </td>
                                         <td class="product-total text-right">
-                                            <span class="pl-4 pr-0">{{ single_price($orderDetail['price']*$orderDetail['quantity']) }}</span>
+                                            <span class="pl-4 pr-0">{{ single_price($orderDetail['price']) }}</span>
                                         </td>
+                                        
                                     </tr>
                                 @endforeach
                             @endforeach
@@ -103,31 +145,18 @@
                                 </td>
                             </tr>
 
-                            <tr class="cart-shipping">
-                                <th>{{translate('Tax')}}</th>
-                                <td class="text-right">
-                                <span class="font-italic">{{ single_price($tax) }}</span>
-                                </td>
-                            </tr>
 
                             <tr class="cart-shipping">
                                 <th>{{translate('Total Shipping')}}</th>
                                 <td class="text-right">
-                                <span class="font-italic">{{ single_price($shipping_cost) }}</span>
-                                </td>
-                            </tr>
-
-                            <tr class="cart-shipping">
-                                <th>{{ translate('Coupon Discount')}}</th>
-                                <td class="text-right">
-                                <span class="font-italic">{{ single_price($coupon_discount) }}</span>
+                                <span class="font-italic">{{ format_price($shipping_cost) }}</span>
                                 </td>
                             </tr>
 
                             <tr class="cart-shipping">
                                 <th><span class="fw-600">{{ translate('Total')}}</span></th>
                                 <td class="text-right">
-                                    <strong><span>{{ single_price($grand_total) }}</span></strong>
+                                    <strong><span>{{ format_price($grand_total) }}</span></strong>
                                 </td>
                             </tr>
                         </tfoot>
@@ -139,6 +168,22 @@
         </div>
     <section>
 
+    <div class="modal fade" id="myModalOy" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="width:350px!important;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">OY! Indonesia Payment Link</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <iframe id="payment-popup"
+                    height="500"
+                    src="{{$result->url}}"
+                    title="OY! Indonesia Payment Link">
+            </iframe>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('script')
@@ -147,6 +192,11 @@
         setTimeout(() => {
             oyid_form.click();
         }, 3000);
+
+        $(".showModalPayment").click(function(e) {
+            e.preventDefault();
+            $("#myModalOy").modal("show");
+        });
 
         function check_payment() {
             $('.button-confirm').addClass(['d-none']);

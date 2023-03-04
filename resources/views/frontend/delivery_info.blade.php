@@ -51,16 +51,16 @@
                     $admin_products = array();
                     $seller_products = array();
                     foreach ($carts as $key => $cartItem){
-                        if(\App\Product::find($cartItem['product_id'])->added_by == 'admin'){
+                        if(\App\Models\Product::find($cartItem['product_id'])->added_by == 'admin'){
                             array_push($admin_products, $cartItem['product_id']);
                         }
                         else{
                             $product_ids = array();
-                            if(array_key_exists(\App\Product::find($cartItem['product_id'])->user_id, $seller_products)){
-                                $product_ids = $seller_products[\App\Product::find($cartItem['product_id'])->user_id];
+                            if(array_key_exists(\App\Models\Product::find($cartItem['product_id'])->user_id, $seller_products)){
+                                $product_ids = $seller_products[\App\Models\Product::find($cartItem['product_id'])->user_id];
                             }
                             array_push($product_ids, $cartItem['product_id']);
-                            $seller_products[\App\Product::find($cartItem['product_id'])->user_id] = $product_ids;
+                            $seller_products[\App\Models\Product::find($cartItem['product_id'])->user_id] = $product_ids;
                         }
                     }
                 @endphp
@@ -76,7 +76,7 @@
                             <ul class="list-group list-group-flush">
                                 @foreach ($admin_products as $key => $cartItem)
                                 @php
-                                    $product = \App\Product::find($cartItem);
+                                    $product = \App\Models\Product::find($cartItem);
                                 @endphp
                                 <li class="list-group-item">
                                     <div class="d-flex">
@@ -103,7 +103,7 @@
                                             <label class="aiz-megabox d-block bg-white mb-0">
                                                 <input
                                                     type="radio"
-                                                    name="shipping_type_{{ \App\User::where('user_type', 'admin')->first()->id }}"
+                                                    name="shipping_type_{{ \App\Models\User::where('user_type', 'admin')->first()->id }}"
                                                     value="home_delivery"
                                                     onchange="show_pickup_point(this)"
                                                     data-target=".pickup_point_id_admin"
@@ -115,12 +115,12 @@
                                                 </span>
                                             </label>
                                         </div>
-                                        @if (\App\BusinessSetting::where('type', 'pickup_point')->first()->value == 1)
+                                        @if (\App\Models\BusinessSetting::where('type', 'pickup_point')->first()->value == 1)
                                         <div class="col-6">
                                             <label class="aiz-megabox d-block bg-white mb-0">
                                                 <input
                                                     type="radio"
-                                                    name="shipping_type_{{ \App\User::where('user_type', 'admin')->first()->id }}"
+                                                    name="shipping_type_{{ \App\Models\User::where('user_type', 'admin')->first()->id }}"
                                                     value="pickup_point"
                                                     onchange="show_pickup_point(this)"
                                                     data-target=".pickup_point_id_admin"
@@ -136,11 +136,11 @@
                                     <div class="mt-4 pickup_point_id_admin d-none">
                                         <select
                                             class="form-control aiz-selectpicker"
-                                            name="pickup_point_id_{{ \App\User::where('user_type', 'admin')->first()->id }}"
+                                            name="pickup_point_id_{{ \App\Models\User::where('user_type', 'admin')->first()->id }}"
                                             data-live-search="true"
                                         >
                                                 <option>{{ translate('Select your nearest pickup point')}}</option>
-                                            @foreach (\App\PickupPoint::where('pick_up_status',1)->get() as $key => $pick_up_point)
+                                            @foreach (\App\Models\PickupPoint::where('pick_up_status',1)->get() as $key => $pick_up_point)
                                                 <option
                                                     value="{{ $pick_up_point->id }}"
                                                     data-content="<span class='d-block'>
@@ -158,7 +158,7 @@
 
                         </div>
                         <div class="card-footer justify-content-end">
-                            <button type="submit" name="owner_id" value="{{ App\User::where('user_type', 'admin')->first()->id }}" class="btn fw-600 btn-primary">{{ translate('Continue to Payment')}}</a>
+                            <button type="submit" name="owner_id" value="{{ App\Models\User::where('user_type', 'admin')->first()->id }}" class="btn fw-600 btn-primary">{{ translate('Continue to Payment')}}</a>
                         </div>
                     </div>
                 </form>
@@ -169,13 +169,13 @@
                         @foreach ($seller_products as $key => $seller_product)
                             <div class="card mb-3 shadow-sm border-0 rounded">
                                 <div class="card-header p-3">
-                                    <h5 class="fs-16 fw-600 mb-0">{{ \App\Shop::where('user_id', $key)->first()->name }} {{ translate('Products') }}</h5>
+                                    <h5 class="fs-16 fw-600 mb-0">{{ \App\Models\Shop::where('user_id', $key)->first()->name }} {{ translate('Products') }}</h5>
                                 </div>
                                 <div class="card-body">
                                     <ul class="list-group list-group-flush">
                                         @foreach ($seller_product as $cartItem)
                                         @php
-                                            $product = \App\Product::find($cartItem);
+                                            $product = \App\Models\Product::find($cartItem);
                                         @endphp
                                         <li class="list-group-item">
                                             <div class="d-flex">
@@ -192,7 +192,7 @@
                                         @endforeach
                                     </ul>
                                     @php
-                                        $shop = \App\Shop::where('user_id', $key)->first()
+                                        $shop = \App\Models\Shop::where('user_id', $key)->first()
                                     @endphp
 
                                     <div class="row border-top pt-3">
@@ -200,8 +200,7 @@
                                             <h6 class="fs-15 fw-600">{{ translate('Kurir Pilihan') }}</h6>
                                             <div class="form-group">
 
-                                                <select name="courier[{{ $key }}]" data-seller_id="{{ $key }}"
-                                                        class="form-control select-courier">
+                                                <select name="courier[{{ $key }}]" data-seller_id="{{ $key }}" class="form-control select-courier" required>
                                                     <option value="">Pilih Kurir</option>
                                                     @if($shop->couriers)
                                                         @foreach($couriers as $courier)
@@ -221,8 +220,8 @@
 
                                         <div class="col-md-6">
                                             <div class="row gutters-5">
-                                                @if (\App\BusinessSetting::where('type', 'pickup_point')->first()->value == 1)
-                                                    @if (is_array(json_decode(\App\Shop::where('user_id', $key)->first()->pick_up_point_id)))
+                                                @if (\App\Models\BusinessSetting::where('type', 'pickup_point')->first()->value == 1)
+                                                    @if (is_array(json_decode(\App\Models\Shop::where('user_id', $key)->first()->pick_up_point_id)))
                                                     <div class="col-6">
                                                         <label class="aiz-megabox d-block bg-white mb-0">
                                                             <input
@@ -241,8 +240,8 @@
                                                     @endif
                                                 @endif
                                             </div>
-                                            @if (\App\BusinessSetting::where('type', 'pickup_point')->first()->value == 1)
-                                                @if (is_array(json_decode(\App\Shop::where('user_id', $key)->first()->pick_up_point_id)))
+                                            @if (\App\Models\BusinessSetting::where('type', 'pickup_point')->first()->value == 1)
+                                                @if (is_array(json_decode(\App\Models\Shop::where('user_id', $key)->first()->pick_up_point_id)))
                                                 <div class="mt-4 pickup_point_id_{{ $key }} d-none">
                                                     <select
                                                         class="form-control aiz-selectpicker"
@@ -250,14 +249,14 @@
                                                         data-live-search="true"
                                                     >
                                                             <option>{{ translate('Select your nearest pickup point')}}</option>
-                                                        @foreach (json_decode(\App\Shop::where('user_id', $key)->first()->pick_up_point_id) as $pick_up_point)
-                                                            @if (\App\PickupPoint::find($pick_up_point) != null)
+                                                        @foreach (json_decode(\App\Models\Shop::where('user_id', $key)->first()->pick_up_point_id) as $pick_up_point)
+                                                            @if (\App\Models\PickupPoint::find($pick_up_point) != null)
                                                             <option
-                                                                value="{{ \App\PickupPoint::find($pick_up_point)->id }}"
+                                                                value="{{ \App\Models\PickupPoint::find($pick_up_point)->id }}"
                                                                 data-content="<span class='d-block'>
-                                                                                <span class='d-block fs-16 fw-600 mb-2'>{{ \App\PickupPoint::find($pick_up_point)->getTranslation('name') }}</span>
-                                                                                <span class='d-block opacity-50 fs-12'><i class='las la-map-marker'></i> {{ \App\PickupPoint::find($pick_up_point)->getTranslation('address') }}</span>
-                                                                                <span class='d-block opacity-50 fs-12'><i class='las la-phone'></i> {{ \App\PickupPoint::find($pick_up_point)->phone }}</span>
+                                                                                <span class='d-block fs-16 fw-600 mb-2'>{{ \App\Models\PickupPoint::find($pick_up_point)->getTranslation('name') }}</span>
+                                                                                <span class='d-block opacity-50 fs-12'><i class='las la-map-marker'></i> {{ \App\Models\PickupPoint::find($pick_up_point)->getTranslation('address') }}</span>
+                                                                                <span class='d-block opacity-50 fs-12'><i class='las la-phone'></i> {{ \App\Models\PickupPoint::find($pick_up_point)->phone }}</span>
                                                                             </span>"
                                                             >
                                                             </option>
@@ -282,16 +281,22 @@
                             </div>
                             <input type="hidden"  name="owner_ids[]" value="{{ $key }}" />
                         @endforeach
-                            <div class="card-footer justify-content-end">
-                                <button type="submit" class="btn fw-600 btn-primary">{{ translate('Continue to Payment')}}</a>
-                            </div>
+                            @else
                     @endif
-                </form>
-                <div class="pt-4">
-                    <a href="{{ route('home') }}" >
-                        <i class="la la-angle-left"></i>
-                        {{ translate('Return to shop')}}
-                    </a>
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-center text-md-left order-1 order-md-0">
+                        <a href="{{ route('home') }}" class="btn btn-link">
+                            <i class="las la-arrow-left"></i>
+                            {{ translate('Return to shop')}}
+                        </a>
+                    </div>
+                    <input type="hidden" name="checkout_cart" class="form-control" value="true">
+                    <div class="col-md-6 text-center text-md-right">
+                            <button class="btn btn-primary fw-600" type="submit">{{ translate('Continue to Shipping')}}</button>
+                    </div>
+                        </form>
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -305,8 +310,7 @@
 @endsection
 @section('style')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script
-        src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
 @endsection
 @section('script')
     <script type="text/javascript">
@@ -317,8 +321,6 @@
         function show_pickup_point(el) {
         	var value = $(el).val();
         	var target = $(el).data('target');
-
-            // console.log(value);
 
         	if(value == 'home_delivery'){
                 if(!$(target).hasClass('d-none')){
@@ -333,11 +335,33 @@
             let courier = $(this).val()
             let seller_id = $(this).data('seller_id');
 
+            if(courier == ""){
+                $("#detail_cost_"+ seller_id).html("")
+            }else{
+                get_list_service(courier,seller_id);
+            }
+        })
+
+        $(document).ready(function(){
+            let courier = $('.select-courier').val();
+            let seller_id = $('.select-courier').data('seller_id');
+            let service = localStorage.getItem('service');
+            if(courier != ""){
+                get_list_service(courier,seller_id,service);
+            }
+        });
+
+        $(document).on('change','.service_type',function(){
+            localStorage.setItem('service',$(this).val());
+        });
+
+        function get_list_service(courier,seller_id,service=null){
             $.ajax({
                 url: "{{route('checkout.ajax-get-services')}}",
                 data: {
                     courier: courier,
-                    seller_id: seller_id
+                    seller_id: seller_id,
+                    service: service
                 },
                 beforeSend: function() {
                     $("#detail_cost_"+ seller_id).hide()
@@ -346,7 +370,7 @@
                 success: function(data){
                     $("#spinner_"+ seller_id).hide();
                     $("#detail_cost_"+ seller_id).show()
-                    $("#detail_cost_"+ seller_id).html(data)
+                    $("#detail_cost_"+ seller_id).html(data);
                 },
                 error: function (error) {
                     $("#spinner_"+ seller_id).hide();
@@ -354,8 +378,8 @@
                     $("#detail_cost_"+ seller_id).html(error.responseJSON.data);
                     AIZ.plugins.notify('danger', error.responseJSON.data);
                 }
-            })
-        })
+            });
+        }
 
     </script>
 @endsection

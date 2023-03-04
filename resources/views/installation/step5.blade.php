@@ -30,7 +30,7 @@
                                 <div class="form-group">
                                     <label for="admin_name">System Currency</label>
                                     <select class="form-control aiz-selectpicker" data-live-search="true" name="system_default_currency" required>
-                                        @foreach (\App\Currency::all() as $key => $currency)
+                                        @foreach (\App\Models\Currency::all() as $key => $currency)
                                             <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                         @endforeach
                                     </select>

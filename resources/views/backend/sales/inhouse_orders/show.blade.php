@@ -17,11 +17,10 @@
                 @endphp
 
                 <!--Assign Delivery Boy-->
-                @if (\App\Addon::where('unique_identifier', 'delivery_boy')->first() != null &&
-                    \App\Addon::where('unique_identifier', 'delivery_boy')->first()->activated)
+                @if (addon_is_activated('delivery_boy'))
                     <div class="col-md-3 ml-auto">
                         <label for="assign_deliver_boy">{{translate('Assign Deliver Boy')}}</label>
-                        @if($delivery_status == 'pending' || $delivery_status == 'picked_up')
+                        @if($delivery_status == 'pending' || $delivery_status == 'confirmed' || $delivery_status == 'picked_up')
                         <select class="form-control aiz-selectpicker" data-live-search="true" data-minimum-results-for-search="Infinity" id="assign_deliver_boy">
                             <option value="">{{translate('Select Delivery Boy')}}</option>
                             @foreach($delivery_boys as $delivery_boy)
@@ -36,14 +35,14 @@
                     </div>
                 @endif
                 <div class="col-md-3 ml-auto">
-                    <label for=update_payment_status"">{{translate('Payment Status')}}</label>
+                    <label for="update_payment_status">{{translate('Payment Status')}}</label>
                     <select class="form-control aiz-selectpicker"  data-minimum-results-for-search="Infinity" id="update_payment_status">
                         <option value="unpaid" @if ($payment_status == 'unpaid') selected @endif>{{translate('Unpaid')}}</option>
                         <option value="paid" @if ($payment_status == 'paid') selected @endif>{{translate('Paid')}}</option>
                     </select>
                 </div>
                 <div class="col-md-3 ml-auto">
-                    <label for=update_delivery_status"">{{translate('Delivery Status')}}</label>
+                    <label for="update_delivery_status">{{translate('Delivery Status')}}</label>
                     @if($delivery_status != 'delivered' && $delivery_status != 'cancelled')
                         <select class="form-control aiz-selectpicker"  data-minimum-results-for-search="Infinity" id="update_delivery_status">
                             <option value="pending" @if ($delivery_status == 'pending') selected @endif>{{translate('Pending')}}</option>
@@ -57,10 +56,20 @@
                         <input type="text" class="form-control" value="{{ $delivery_status }}" disabled>
                     @endif
                 </div>
+                <div class="col-md-3 ml-auto">
+                    <label for="update_tracking_code">{{translate('Tracking Code (optional)')}}</label>
+                    <input type="text" class="form-control" id="update_tracking_code" value="{{ $order->tracking_code }}">
+                </div>
+            </div>
+            <div class="mb-3">
+                @php
+                                $removedXML = '<?xml version="1.0" encoding="UTF-8"?>';
+                            @endphp
+                            {!! str_replace($removedXML,"", QrCode::size(100)->generate($order->code)) !!}
             </div>
             <div class="row gutters-5">
                 <div class="col text-center text-md-left">
-                  <address>
+                    <address>
                       <strong class="text-main">{{ json_decode($order->shipping_address)->name }}</strong><br>
                        {{ json_decode($order->shipping_address)->email }}<br>
                        {{ json_decode($order->shipping_address)->phone }}<br>
@@ -104,7 +113,7 @@
                         </tr>
                         <tr>
                             <td class="text-main text-bold">{{translate('Payment method')}}</td>
-                            <td class="text-right">{{ ucfirst(str_replace('_', ' ', $order->payment_type)) }}</td>
+                            <td class="text-right">{{ translate(ucfirst(str_replace('_', ' ', $order->payment_type))) }}</td>
                         </tr>
                       </tbody>
                   </table>
@@ -134,7 +143,7 @@
     				</thead>
     				<tbody>
                         @php
-                        $admin_user_id = \App\User::where('user_type', 'admin')->first()->id;
+                        $admin_user_id = \App\Models\User::where('user_type', 'admin')->first()->id;
                         @endphp
                         @foreach ($order->orderDetails->where('seller_id', $admin_user_id) as $key => $orderDetail)
                             <tr>
@@ -159,11 +168,11 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if ($orderDetail->shipping_type != null && $orderDetail->shipping_type == 'home_delivery')
+                                    @if ($order->shipping_type != null && $order->shipping_type == 'home_delivery')
                                       {{ translate('Home Delivery') }}
-                                    @elseif ($orderDetail->shipping_type == 'pickup_point')
-                                      @if ($orderDetail->pickup_point != null)
-                                        {{ $orderDetail->pickup_point->getTranslation('name') }} ({{ translate('Pickup Point') }})
+                                    @elseif ($order->shipping_type == 'pickup_point')
+                                      @if ($order->pickup_point != null)
+                                        {{ $order->pickup_point->getTranslation('name') }} ({{ translate('Pickup Point') }})
                                       @else
                                         {{ translate('Pickup Point') }}
                                       @endif
@@ -222,6 +231,18 @@
 
 @section('script')
     <script type="text/javascript">
+        $('#assign_deliver_boy').on('change', function(){
+            var order_id = {{ $order->id }};
+            var delivery_boy = $('#assign_deliver_boy').val();
+            $.post('{{ route('orders.delivery-boy-assign') }}', {
+                _token          :'{{ @csrf_token() }}',
+                order_id        :order_id,
+                delivery_boy    :delivery_boy
+            }, function(data){
+                AIZ.plugins.notify('success', '{{ translate('Delivery boy has been assigned') }}');
+            });
+        });
+        
         $('#update_delivery_status').on('change', function(){
             var order_id = {{ $order->id }};
             var status = $('#update_delivery_status').val();
@@ -237,5 +258,14 @@
                 AIZ.plugins.notify('success', '{{ translate('Payment status has been updated') }}');
             });
         });
+
+        $('#update_tracking_code').on('change', function(){
+            var order_id = {{ $order->id }};
+            var tracking_code = $('#update_tracking_code').val();
+            $.post('{{ route('orders.update_tracking_code') }}', {_token:'{{ @csrf_token() }}',order_id:order_id,tracking_code:tracking_code}, function(data){
+                AIZ.plugins.notify('success', '{{ translate('Order tracking code has been updated') }}');
+            });
+        });
+        
     </script>
 @endsection

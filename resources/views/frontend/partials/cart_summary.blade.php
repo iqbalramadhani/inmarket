@@ -10,13 +10,13 @@
     </div>
 
     <div class="card-body">
-        @if (\App\Addon::where('unique_identifier', 'club_point')->first() != null && \App\Addon::where('unique_identifier', 'club_point')->first()->activated)
+        @if (\App\Models\Addon::where('unique_identifier', 'club_point')->first() != null && \App\Models\Addon::where('unique_identifier', 'club_point')->first()->activated)
             @php
                 $total_point = 0;
             @endphp
             @foreach ($carts as $key => $cartItem)
                 @php
-                    $product = \App\Product::find($cartItem['product_id']);
+                    $product = \App\Models\Product::find($cartItem['product_id']);
                     $total_point += $product->earn_point * $cartItem['quantity'];
                 @endphp
             @endforeach
@@ -36,16 +36,14 @@
             <tbody>
                 @php
                     $subtotal = 0;
-                    $tax = 0;
                     $shipping = 0;
                     $product_shipping_cost = 0;
                     $shipping_region = $shipping_info['city'];
                 @endphp
                 @foreach ($carts as $key => $cartItem)
                     @php
-                        $product = \App\Product::find($cartItem['product_id']);
-                        $subtotal += $cartItem['price'] * $cartItem['quantity'];
-                        $tax += $cartItem['tax'] * $cartItem['quantity'];
+                        $product = \App\Models\Product::find($cartItem['product_id']);
+                        $subtotal += convert_price($cartItem['price']) * $cartItem['quantity'];
                         $product_shipping_cost = $cartItem['shipping_cost'];
                         
                         $shipping += $product_shipping_cost;
@@ -76,21 +74,14 @@
                 <tr class="cart-subtotal">
                     <th>{{translate('Subtotal')}}</th>
                     <td class="text-right">
-                        <span class="fw-600">{{ single_price($subtotal) }}</span>
-                    </td>
-                </tr>
-
-                <tr class="cart-shipping">
-                    <th>{{translate('Tax')}}</th>
-                    <td class="text-right">
-                        <span class="font-italic">{{ single_price($tax) }}</span>
+                        <span class="fw-600">{{ format_price($subtotal) }}</span>
                     </td>
                 </tr>
 
                 <tr class="cart-shipping">
                     <th>{{translate('Total Shipping')}}</th>
                     <td class="text-right">
-                        <span class="font-italic">{{ single_price($shipping) }}</span>
+                        <span class="font-italic">{{ format_price($shipping) }}</span>
                     </td>
                 </tr>
 
@@ -113,7 +104,7 @@
                 @endif
 
                 @php
-                    $total = $subtotal+$tax+$shipping;
+                    $total = $subtotal+$shipping;
                     if(Session::has('club_point')) {
                         $total -= Session::get('club_point');
                     }
@@ -125,13 +116,13 @@
                 <tr class="cart-total">
                     <th><span class="strong-600">{{translate('Total')}}</span></th>
                     <td class="text-right">
-                        <strong><span>{{ single_price($total) }}</span></strong>
+                        <strong><span>{{ format_price($total) }}</span></strong>
                     </td>
                 </tr>
             </tfoot>
         </table>
 
-        @if (\App\Addon::where('unique_identifier', 'club_point')->first() != null && \App\Addon::where('unique_identifier', 'club_point')->first()->activated)
+        @if (\App\Models\Addon::where('unique_identifier', 'club_point')->first() != null && \App\Models\Addon::where('unique_identifier', 'club_point')->first()->activated)
             @if (Session::has('club_point'))
                 <div class="mt-3">
                     <form class="" action="{{ route('checkout.remove_club_point') }}" method="POST" enctype="multipart/form-data">

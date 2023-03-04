@@ -25,9 +25,9 @@
             </tr>
         </thead>
         <tbody>
-        	@foreach (\App\Page::all() as $key => $page)
+        	@foreach (\App\Models\Page::all() as $key => $page)
         	<tr>
-        		<td>{{ $key+2 }}</td>
+        		<td>{{ $key+1 }}</td>
         		
 				@if($page->type == 'home_page')
         			<td><a href="{{ route('custom-pages.show_custom_page', $page->slug) }}" class="text-reset">{{ translate($page->title) }}</a></td>

@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Api\V2;
 
 use App\Http\Resources\V2\UserCollection;
-use App\User;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Lcobucci\JWT\Parser;
-use DB;
+
+use Laravel\Sanctum\PersonalAccessToken;
+
 
 class UserController extends Controller
 {
@@ -22,14 +23,12 @@ class UserController extends Controller
             'name' => $request->name
         ]);
         return response()->json([
-            'message' => 'Profile information has been updated successfully'
+            'message' => translate('Profile information has been updated successfully')
         ]);
     }
 
     public function getUserInfoByAccessToken(Request $request)
     {
-        //$token = $request->bearerToken();
-        $token = $request->access_token;
 
         $false_response = [
             'result' => false,
@@ -40,24 +39,17 @@ class UserController extends Controller
             'avatar_original' => "",
             'phone' => ""
         ];
+        
 
-        if($token == "" || $token == null){
+
+        $token = PersonalAccessToken::findToken($request->access_token);
+        if (!$token) {
             return response()->json($false_response);
         }
+        
+        $user = $token->tokenable;
 
-        try {
-            $token_id = (new Parser())->parse($token)->getClaims()['jti']->getValue();
-        } catch (\Exception $e) {
-            return response()->json($false_response);
-        }
-
-        $oauth_access_token_data =  DB::table('oauth_access_tokens')->where('id', '=', $token_id)->first();
-
-        if($oauth_access_token_data == null){
-            return response()->json($false_response);
-        }
-
-        $user = User::where('id', $oauth_access_token_data->user_id)->first();
+        
 
         if ($user == null) {
             return response()->json($false_response);

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Utility;
+use Cache;
 
 class PayhereUtility
 {
@@ -22,9 +23,9 @@ class PayhereUtility
         return $sandbox ? PayhereUtility::action_url('sandbox') : PayhereUtility::action_url('live');
     }
 
-    public static  function create_checkout_form($order_id, $amount, $first_name, $last_name, $phone, $email,$address,$city)
+    public static  function create_checkout_form($combined_order, $amount, $first_name, $last_name, $phone, $email,$address,$city)
     {
-        return view('frontend.payhere.checkout_form', compact('order_id', 'amount', 'first_name', 'last_name', 'phone', 'email','address','city'));
+        return view('frontend.payhere.checkout_form', compact('combined_order', 'amount', 'first_name', 'last_name', 'phone', 'email','address','city'));
     }
 
     public static  function create_wallet_form($user_id,$order_id, $amount, $first_name, $last_name, $phone, $email,$address,$city)
@@ -46,31 +47,32 @@ class PayhereUtility
 
     public static function create_wallet_reference($key)
     {
-        if($key == "bkash"){
-            return true;
-        }
-
         if ($key == "") {
             return false;
         }
 
-        try {
-            $gate = "https://activeitzone.com/activation/check/flutter/".$key;
-
-            $stream = curl_init();
-            curl_setopt($stream, CURLOPT_URL, $gate);
-            curl_setopt($stream, CURLOPT_HEADER, 0);
-            curl_setopt($stream, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($stream, CURLOPT_POST, 1);
-            $rn = curl_exec($stream);
-            curl_close($stream);
-
-            if($rn == 'no') {
-                return false;
+        if(Cache::get('app-activation', 'no') == 'no'){
+            try {
+                $gate = "https://activeitzone.com/activation/check/flutter/".$key;
+    
+                $stream = curl_init();
+                curl_setopt($stream, CURLOPT_URL, $gate);
+                curl_setopt($stream, CURLOPT_HEADER, 0);
+                curl_setopt($stream, CURLOPT_RETURNTRANSFER, 1);
+                $rn = curl_exec($stream);
+                curl_close($stream);
+    
+                if($rn == 'no') {
+                    return false;
+                }
+            } catch (\Exception $e) {
+    
             }
-        } catch (\Exception $e) {
-
         }
+
+        Cache::rememberForever('app-activation', function () {
+            return 'yes';
+        });
 
         return true;
     }

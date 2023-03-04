@@ -16,8 +16,8 @@
             @endphp
 
             <!--Assign Delivery Boy-->
-                @if (\App\Addon::where('unique_identifier', 'delivery_boy')->first() != null &&
-                    \App\Addon::where('unique_identifier', 'delivery_boy')->first()->activated)
+                @if (\App\Models\Addon::where('unique_identifier', 'delivery_boy')->first() != null &&
+                    \App\Models\Addon::where('unique_identifier', 'delivery_boy')->first()->activated)
                     <div class="col-md-3 ml-auto">
                         <label for="assign_deliver_boy">{{translate('Assign Deliver Boy')}}</label>
                         @if($delivery_status == 'pending' || $delivery_status == 'picked_up')

@@ -14,11 +14,11 @@ class UpdateShopTable extends Migration
     public function up()
     {
         Schema::table('shops', function (Blueprint $table) {
-            $table->string('province', 50);
-            $table->string('city', 50);
-            $table->string('district', 50);
-            $table->string('sub_district', 50);
-            $table->string('postal_code', 10);
+            $table->string('province', 50)->nullable();
+            $table->string('city', 50)->nullable();
+            $table->string('district', 50)->nullable();
+            $table->string('sub_district', 50)->nullable();
+            $table->string('postal_code', 10)->nullable();
         });
     }
 

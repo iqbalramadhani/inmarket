@@ -9,10 +9,13 @@ use Illuminate\Http\Request;
 use App\Http\Resources\V2\DeliveryBoyCollection;
 use App\Http\Resources\V2\DeliveryHistoryCollection;
 use Auth;
-use App\DeliveryBoy;
-use App\DeliveryHistory;
-use App\Order;
-use App\User;
+use App\Models\DeliveryBoy;
+use App\Models\DeliveryHistory;
+use App\Models\Order;
+use App\Models\User;
+use App\SmsTemplate;
+use App\Utility\SmsUtility;
+
 
 class DeliveryBoyController extends Controller
 {
@@ -269,7 +272,7 @@ class DeliveryBoyController extends Controller
     {
         $collection_query = DeliveryHistory::query();
         $collection_query->where('delivery_status', 'delivered');
-        $collection_query->where('payment_type', 'cash_on_delivery');
+//        $collection_query->where('payment_type', 'cash_on_delivery');
 
 
         $today_date = date('Y-m-d');
@@ -279,13 +282,11 @@ class DeliveryBoyController extends Controller
 
 
         $today_collection = DeliveryHistory::where('delivery_status', 'delivered')
-            ->where('payment_type', 'cash_on_delivery')
             ->where('delivery_boy_id', $id)
             ->where('created_at','like',"%$today_date%")
             ->sum('earning');
 
         $yesterday_collection = DeliveryHistory::where('delivery_status', 'delivered')
-            ->where('payment_type', 'cash_on_delivery')
             ->where('delivery_boy_id', $id)
             ->where('created_at','like',"%$yesterday_date%")
             ->sum('earning');
@@ -322,7 +323,7 @@ class DeliveryBoyController extends Controller
 
         if($order->delivery_status == 'delivered') {
             foreach ($order->orderDetails as $key => $orderDetail) {
-                if (\App\Addon::where('unique_identifier', 'affiliate_system')->first() != null && \App\Addon::where('unique_identifier', 'affiliate_system')->first()->activated) {
+                if (addon_is_activated('affiliate_system')) {
                     if ($orderDetail->product_referral_code) {
                         $no_of_delivered = 0;
                         $no_of_canceled = 0;
@@ -353,7 +354,7 @@ class DeliveryBoyController extends Controller
 
                 $order->payment_status = 'paid';
                 if ($order->commission_calculated == 0) {
-                    commission_calculation($order);
+                    calculateCommissionAffilationClubPoint($order);
                     $order->commission_calculated = 1;
                 }
 
@@ -366,9 +367,7 @@ class DeliveryBoyController extends Controller
         $order->save();
         $delivery_history->save();
 
-        if (\App\Addon::where('unique_identifier', 'otp_system')->first() != null &&
-              \App\Addon::where('unique_identifier', 'otp_system')->first()->activated &&
-                SmsTemplate::where('identifier','delivery_status_change')->first()->status == 1){
+        if (addon_is_activated('otp_system') && SmsTemplate::where('identifier','delivery_status_change')->first()->status == 1){
             try {
                 SmsUtility::delivery_status_change($order->user->phone, $order);
             } catch (\Exception $e) {
@@ -378,7 +377,7 @@ class DeliveryBoyController extends Controller
 
         return response()->json([
             'result' => true,
-            'message' => 'Delivery status changed to '.ucwords(str_replace('_',' ',$request->status))
+            'message' => translate('Delivery status changed to ').ucwords(str_replace('_',' ',$request->status))
         ]);
     }
 
@@ -392,7 +391,7 @@ class DeliveryBoyController extends Controller
 
         return response()->json([
             'result' => true,
-            'message' => 'Requested for cancellation'
+            'message' => translate('Requested for cancellation')
         ]);
     }
 }

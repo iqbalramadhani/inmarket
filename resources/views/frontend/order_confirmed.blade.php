@@ -172,25 +172,25 @@
                                                     <tr>
                                                         <th>{{ translate('Shipping')}}</th>
                                                         <td class="text-right">
-                                                            <span class="font-italic">{{ single_price($order->orderDetails->sum('shipping_cost')) }}</span>
+                                                            <span class="font-italic">{{ format_price($order->orderDetails->sum('shipping_cost')) }}</span>
                                                         </td>
                                                     </tr>
-                                                    <tr>
+                                                    <!-- <tr>
                                                         <th>{{ translate('Tax')}}</th>
                                                         <td class="text-right">
                                                             <span class="font-italic">{{ single_price($order->orderDetails->sum('tax')) }}</span>
                                                         </td>
-                                                    </tr>
-                                                    <tr>
+                                                    </tr> -->
+                                                    <!-- <tr>
                                                         <th>{{ translate('Coupon Discount')}}</th>
                                                         <td class="text-right">
                                                             <span class="font-italic">{{ single_price($order->coupon_discount) }}</span>
                                                         </td>
-                                                    </tr>
+                                                    </tr> -->
                                                     <tr>
                                                         <th><span class="fw-600">{{ translate('Total')}}</span></th>
                                                         <td class="text-right">
-                                                            <strong><span>{{ single_price($order->grand_total) }}</span></strong>
+                                                            <strong><span>{{ format_price($order->grand_total) }}</span></strong>
                                                         </td>
                                                     </tr>
                                                 </tbody>

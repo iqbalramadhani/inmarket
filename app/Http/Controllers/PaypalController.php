@@ -4,12 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Redirect;
-use App\Order;
-use App\BusinessSetting;
-use App\Seller;
+use App\Models\CombinedOrder;
 use Session;
-use App\CustomerPackage;
-use App\SellerPackage;
+use App\Models\CustomerPackage;
+use App\Models\SellerPackage;
 use PayPalCheckoutSdk\Core\PayPalHttpClient;
 use PayPalCheckoutSdk\Core\SandboxEnvironment;
 use PayPalCheckoutSdk\Core\ProductionEnvironment;
@@ -35,8 +33,8 @@ class PaypalController extends Controller
 
         if(Session::has('payment_type')){
             if(Session::get('payment_type') == 'cart_payment'){
-                $order = Order::findOrFail(Session::get('order_id'));
-                $amount = $order->grand_total;
+                $combined_order = CombinedOrder::findOrFail(Session::get('combined_order_id'));
+                $amount = $combined_order->grand_total;
             }
             elseif (Session::get('payment_type') == 'wallet_payment') {
                 $amount = Session::get('payment_data')['amount'];
@@ -59,7 +57,7 @@ class PaypalController extends Controller
                                  "reference_id" => rand(000000,999999),
                                  "amount" => [
                                      "value" => number_format($amount, 2, '.', ''),
-                                     "currency_code" => \App\Currency::findOrFail(get_setting('system_default_currency'))->code
+                                     "currency_code" => \App\Models\Currency::findOrFail(get_setting('system_default_currency'))->code
                                  ]
                              ]],
                              "application_context" => [
@@ -114,18 +112,16 @@ class PaypalController extends Controller
             // If call returns body in response, you can get the deserialized version from the result attribute of the response
             if($request->session()->has('payment_type')){
                 if($request->session()->get('payment_type') == 'cart_payment'){
-                    $checkoutController = new CheckoutController;
-                    return $checkoutController->checkout_done($request->session()->get('order_id'), json_encode($response));
+                    return (new CheckoutController)->checkout_done($request->session()->get('combined_order_id'), json_encode($response));
                 }
                 elseif ($request->session()->get('payment_type') == 'wallet_payment') {
-                    $walletController = new WalletController;
-                    return $walletController->wallet_payment_done($request->session()->get('payment_data'), json_encode($response));
+                    return (new WalletController)->wallet_payment_done($request->session()->get('payment_data'), json_encode($response));
                 }
-                elseif ($request->session()->get('payment_type') == 'customer_package_payment') {$customer_package_controller = new CustomerPackageController;
-                    return $customer_package_controller->purchase_payment_done($request->session()->get('payment_data'), json_encode($response));
+                elseif ($request->session()->get('payment_type') == 'customer_package_payment') {
+                    return (new CustomerPackageController)->purchase_payment_done($request->session()->get('payment_data'), json_encode($response));
                 }
-                elseif ($request->session()->get('payment_type') == 'seller_package_payment') {$seller_package_controller = new SellerPackageController;
-                    return $seller_package_controller->purchase_payment_done($request->session()->get('payment_data'), json_encode($response));
+                elseif ($request->session()->get('payment_type') == 'seller_package_payment') {
+                    return (new SellerPackageController)->purchase_payment_done($request->session()->get('payment_data'), json_encode($response));
                 }
             }
         }catch (HttpException $ex) {

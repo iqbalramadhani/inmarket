@@ -147,17 +147,7 @@
                                 {{ translate('Track Order') }}
                             </a>
                         </li>
-                        <li class="mb-2">
-                            <a class="opacity-50 hov-opacity-100 text-reset" href="{{ route('shipping-cost.index') }}">
-                                {{ translate('Shipping Cost') }}
-                            </a>
-                        </li>
-                        <li class="mb-2">
-                            <a class="opacity-50 hov-opacity-100 text-reset" href="{{ route('privacypolicy') }}">
-                                {{ translate('Privacy Policy') }}
-                            </a>
-                        </li>
-                        @if (\App\Addon::where('unique_identifier', 'affiliate_system')->first() != null && \App\Addon::where('unique_identifier', 'affiliate_system')->first()->activated)
+                        @if (\App\Models\Addon::where('unique_identifier', 'affiliate_system')->first() != null && \App\Models\Addon::where('unique_identifier', 'affiliate_system')->first()->activated)
                             <li class="mb-2">
                                 <a class="opacity-50 hov-opacity-100 text-dark" href="{{ route('affiliate.apply') }}">{{ translate('Be an affiliate partner')}}</a>
                             </li>
@@ -176,11 +166,17 @@
                 @endif -->
             </div>
 
-            <div class="col-lg-3 ml-xl-auto col-md-4 mr-0">
-                <div class="text-center text-md-center mt-4">
-                    <img src="{{ static_asset('assets/img/logo_umkm_naik_kelas.png') }}" alt="{{ env('APP_NAME') }}" class="mw-180 h-120px h-md-120px" height="120px">
+            @php
+                $footer_logo_right = get_setting('footer_logo_right');
+            @endphp
+            @if($footer_logo_right != null)
+                <div class="col-lg-3 ml-xl-auto col-md-4 mr-0">
+                    <div class="text-center text-md-center mt-4">
+                        <img src="{{ uploaded_asset($footer_logo_right) }}" alt="{{ env('APP_NAME') }}" class="mw-180 h-120px h-md-120px" height="120">
+                    </div>
                 </div>
-            </div>
+            @endif
+  
         </div>
     </div>
 </section>
@@ -258,11 +254,11 @@
         @php
             if(auth()->user() != null) {
                 $user_id = Auth::user()->id;
-                $cart = \App\Cart::where('user_id', $user_id)->get();
+                $cart = \App\Models\Cart::where('user_id', $user_id)->get();
             } else {
                 $temp_user_id = Session()->get('temp_user_id');
                 if($temp_user_id) {
-                    $cart = \App\Cart::where('temp_user_id', $temp_user_id)->get();
+                    $cart = \App\Models\Cart::where('temp_user_id', $temp_user_id)->get();
                 }
             }
         @endphp

@@ -49,4 +49,24 @@
     </div>
 </div>
 
+@if ($conversation->complain_id != NULL || $conversation->complain_id > 0)
+<div class="col-lg-12">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="h2 fs-16 mb-0">
+            Complain Detail
+            </h1>
+        </div>
+        <div class="card-body">
+            <span class="text-muted mb-2 d-block">Alasan Komplain</span>
+            <p class="d-block">{{$order->complain->reason}}</p>
+            <div class="h6 mt-5 d-block text-muted">Status : <span class="fw-700 text-uppercase text-danger">{{$order->complain->status}}</span></div>
+            @foreach($order->complain->images()->get() as $image)
+                <img class="col-2 p-2" src="{{url('public/'.$image->detail()->file_name)}}" alt="{{$image->detail()->file_original_name}}">
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
 @endsection

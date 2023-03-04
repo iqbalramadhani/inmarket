@@ -11,13 +11,11 @@ class PurchaseHistoryItemsCollection extends ResourceCollection
         return [
             'data' => $this->collection->map(function ($data) {
 
-                $refund_request_addon = \App\Addon::where('unique_identifier', 'refund_request')->first();
-
                 $refund_section = false;
                 $refund_button = false;
                 $refund_label = "";
                 $refund_request_status = 99;
-                if ($refund_request_addon != null && $refund_request_addon->activated == 1) {
+                if (addon_is_activated('refund_request')) {
                     $refund_section = true;
                     $no_of_max_day = get_setting('refund_request_time');
                     $last_refund_date = $data->created_at->addDays($no_of_max_day);

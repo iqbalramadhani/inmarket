@@ -21,14 +21,14 @@
                 </div>
                 <div class="card-body">
                     <div class="form-group row">
-                        <label class="col-md-3 col-from-label">{{translate('Product Name')}}</label>
+                        <label class="col-md-3 col-from-label">{{translate('Product Name')}} <span class="text-primary">*</span></label>
                         <div class="col-md-8">
                             <input type="text" class="form-control" name="name"
                                 placeholder="{{ translate('Product Name') }}" onchange="update_sku()" required>
                         </div>
                     </div>
                     <div class="form-group row" id="category">
-                        <label class="col-md-3 col-from-label">{{translate('Category')}}</label>
+                        <label class="col-md-3 col-from-label">{{translate('Category')}} <span class="text-primary">*</span></label>
                         <div class="col-md-8">
                             <select class="form-control aiz-selectpicker" name="category_id" id="category_id"
                                 data-live-search="true" required>
@@ -48,21 +48,21 @@
                             <select class="form-control aiz-selectpicker" name="brand_id" id="brand_id"
                                 data-live-search="true">
                                 <option value="">{{ translate('Select Brand') }}</option>
-                                @foreach (\App\Brand::all() as $brand)
+                                @foreach (\App\Models\Brand::all() as $brand)
                                 <option value="{{ $brand->id }}">{{ $brand->getTranslation('name') }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div> -->
                     <div class="form-group row">
-                        <label class="col-md-3 col-from-label">{{translate('Unit')}}</label>
+                        <label class="col-md-3 col-from-label">{{translate('Unit')}} <span class="text-primary">*</span></label>
                         <div class="col-md-8">
                             <input type="text" class="form-control" name="unit"
                                 placeholder="{{ translate('Unit (e.g. KG, Pc etc)') }}" required>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-md-3 col-from-label">{{translate('Minimum Purchase Qty')}}</label>
+                        <label class="col-md-3 col-from-label">{{translate('Minimum Purchase Qty')}} <span class="text-primary">*</span></label>
                         <div class="col-md-8">
                             <input type="number" lang="en" class="form-control" name="min_qty" value="1" min="1"
                                 required>
@@ -76,16 +76,14 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-lg-3 col-from-label">{{translate('Weight')}} (gram)</label>
+                        <label class="col-lg-3 col-from-label">{{translate('Weight')}} (gram) <span class="text-primary">*</span></label>
                         <div class="col-lg-8">
-                            <input type="number" lang="en" class="form-control" name="weight" placeholder="gram"
-
-                                   required>
+                            <input type="number" lang="en" class="form-control" name="weight" placeholder="gram" required>
                         </div>
                     </div>
 
                     @php
-                    $pos_addon = \App\Addon::where('unique_identifier', 'pos_system')->first();
+                    $pos_addon = \App\Models\Addon::where('unique_identifier', 'pos_system')->first();
                     @endphp
                     @if ($pos_addon != null && $pos_addon->activated == 1)
                     <div class="form-group row">
@@ -98,7 +96,7 @@
                     @endif
 
                     @php
-                    $refund_request_addon = \App\Addon::where('unique_identifier', 'refund_request')->first();
+                    $refund_request_addon = \App\Models\Addon::where('unique_identifier', 'refund_request')->first();
                     @endphp
                     @if ($refund_request_addon != null && $refund_request_addon->activated == 1)
                     <div class="form-group row">
@@ -119,24 +117,31 @@
                 </div>
                 <div class="card-body">
                     <div class="form-group row">
-                        <label class="col-md-3 col-form-label" for="signinSrEmail">{{translate('Thumbnail Image')}}
-                            <small>(290x300)</small></label>
+                        <label class="col-md-3 col-form-label" for="signinSrEmail">{{translate('Thumbnail Image')}} <span class="text-primary">*</span>
+                            <small>(290x300)</small>
+                            <span class="d-block text-muted"><small>Maximum File 2MB</small></span>
+                        </label>
                         <div class="col-md-8">
                             <div class="input-group" data-toggle="aizuploader" data-type="image">
                                 <div class="input-group-prepend">
                                     <div class="input-group-text bg-soft-secondary font-weight-medium">
                                         {{ translate('Browse')}}</div>
                                 </div>
-                                <div class="form-control file-amount">{{ translate('Choose File') }}</div>
+                                <div class="form-control file-amount{{ $errors->has('thumbnail_img') ? ' is-invalid' : '' }}">{{ translate('Choose File') }}</div>
                                 <input type="hidden" name="thumbnail_img" class="selected-files">
                             </div>
                             <div class="file-preview box sm">
                             </div>
+                            @error('thumbnail_img')
+                            <div class="text-danger">{{ $errors->first('thumbnail_img') }}</div>
+                            @enderror
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-md-3 col-form-label"
-                            for="signinSrEmail">{{translate('Gallery Images')}}</label>
+                            for="signinSrEmail">{{translate('Gallery Images')}}
+                            <span class="d-block text-muted"><small>Maximum File 2MB</small></span>
+                        </label>
                         <div class="col-md-8">
                             <div class="input-group" data-toggle="aizuploader" data-type="image" data-multiple="true">
                                 <div class="input-group-prepend">
@@ -188,7 +193,7 @@
                         <div class="col-md-8">
                             <select class="form-control aiz-selectpicker" data-live-search="true" name="colors[]"
                                 data-selected-text-format="" id="colors" multiple disabled>
-                                @foreach (\App\Color::orderBy('name', 'asc')->get() as $key => $color)
+                                @foreach (\App\Models\Color::orderBy('name', 'asc')->get() as $key => $color)
                                 <option value="{{ $color->code }}"
                                     data-content="<span><span class='size-15px d-inline-block mr-2 rounded border' style='background:{{ $color->code }}'></span><span>{{ $color->name }}</span></span>">
                                 </option>
@@ -211,7 +216,7 @@
                                 class="form-control aiz-selectpicker" data-live-search="true"
                                 data-selected-text-format="count" multiple
                                 data-placeholder="{{ translate('Choose Attributes') }}">
-                                @foreach (\App\Attribute::all() as $key => $attribute)
+                                @foreach (\App\Models\Attribute::all() as $key => $attribute)
                                 <option value="{{ $attribute->id }}">{{ $attribute->getTranslation('name') }}</option>
                                 @endforeach
                             </select>
@@ -295,11 +300,12 @@
                 </div>
                 <div class="card-body">
                     <div class="form-group row">
-                        <label class="col-md-3 col-from-label">{{translate('Unit price')}}</label>
+                        <label class="col-md-3 col-from-label">{{translate('Unit price')}} <span class="text-primary">*</span></label>
                         <div class="col-md-6">
                             <input type="number" lang="en" min="0" value="0" step="0.01"
                                 placeholder="{{ translate('Unit price') }}" name="unit_price" class="form-control"
                                 required>
+                            <span class="text-danger" id="valid-price" style="display: none;">Maskimal harga barang 5.000.000</span>
                         </div>
                     </div>
 <!--                    <div class="form-group row">
@@ -322,7 +328,7 @@
                                 </select>
                             </div>
                         </div>-->
-                    <div class="form-group row">
+                    <!-- <div class="form-group row">
                         <label class="col-md-3 col-from-label">{{translate('Discount')}}</label>
                         <div class="col-md-6">
                             <input type="number" lang="en" min="0" value="0" step="0.01"
@@ -334,11 +340,11 @@
                                 <option value="percent">{{translate('Percent')}}</option>
                             </select>
                         </div>
-                    </div>
+                    </div> -->
 
                     <div id="show-hide-div">
                         <div class="form-group row">
-                            <label class="col-md-3 col-from-label">{{translate('Quantity')}}</label>
+                            <label class="col-md-3 col-from-label">{{translate('Quantity')}} <span class="text-primary">*</span></label>
                             <div class="col-md-6">
                                 <input type="number" lang="en" min="0" value="0" step="1"
                                     placeholder="{{ translate('Quantity') }}" name="current_stock" class="form-control"
@@ -466,7 +472,7 @@
 
                     <div class="flat_rate_shipping_div" style="display: none">
                         <div class="form-group row">
-                            <label class="col-md-6 col-from-label">{{translate('Shipping cost')}}</label>
+                            <label class="col-md-6 col-from-label">{{translate('Shipping cost')}} <span class="text-primary">*</span></label>
                             <div class="col-md-6">
                                 <input type="number" lang="en" min="0" value="0" step="0.01"
                                     placeholder="{{ translate('Shipping cost') }}" name="flat_shipping_cost"
@@ -531,7 +537,7 @@
                     <h5 class="mb-0 h6">{{translate('VAT & Tax')}}</h5>
                 </div>
                 <div class="card-body">
-                    @foreach(\App\Tax::where('tax_status', 1)->get() as $tax)
+                    @foreach(\App\Models\Tax::where('tax_status', 1)->get() as $tax)
                     <label for="name">
                         {{$tax->name}}
                         <input type="hidden" value="{{$tax->id}}" name="tax_id[]">
@@ -647,6 +653,14 @@
 
         $('input[name="unit_price"]').on('keyup', function() {
             update_sku();
+            let price = $(this).val();
+            if(price > 5000000){
+                $(".register button[type=submit]").attr('disabled', true);
+                $('#valid-price').show();
+            }else{
+                $(".register button[type=submit]").attr('disabled', false);
+                $('#valid-price').hide();
+            }
         });
 
         $('input[name="name"]').on('keyup', function() {

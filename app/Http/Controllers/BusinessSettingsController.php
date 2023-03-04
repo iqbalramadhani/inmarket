@@ -3,81 +3,91 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Currency;
-use App\BusinessSetting;
+use App\Models\BusinessSetting;
 use Artisan;
 use CoreComponentRepository;
-use Illuminate\Support\Facades\Artisan as FacadesArtisan;
 
 class BusinessSettingsController extends Controller
 {
     public function general_setting(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
     	return view('backend.setup_configurations.general_settings');
     }
 
     public function activation(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
     	return view('backend.setup_configurations.activation');
     }
 
     public function social_login(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.social_login');
     }
 
     public function smtp_settings(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.smtp_settings');
     }
 
     public function google_analytics(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.google_configuration.google_analytics');
     }
 
     public function google_recaptcha(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.google_configuration.google_recaptcha');
     }
-
+    
     public function google_map(Request $request) {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.google_configuration.google_map');
     }
-
+    
     public function google_firebase(Request $request) {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.google_configuration.google_firebase');
     }
 
     public function facebook_chat(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.facebook_chat');
     }
 
     public function facebook_comment(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.facebook_configuration.facebook_comment');
     }
 
     public function payment_method(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.payment_method');
     }
 
     public function file_system(Request $request)
     {
         CoreComponentRepository::instantiateShopRepository();
+        CoreComponentRepository::initializeCache();
         return view('backend.setup_configurations.file_system');
     }
 
@@ -93,7 +103,6 @@ class BusinessSettingsController extends Controller
         }
 
         $business_settings = BusinessSetting::where('type', $request->payment_method.'_sandbox')->first();
-
         if($business_settings != null){
             if ($request->has($request->payment_method.'_sandbox')) {
                 $business_settings->value = 1;
@@ -340,11 +349,20 @@ class BusinessSettingsController extends Controller
         $select_types = ['select', 'multi_select', 'radio'];
         $j = 0;
         for ($i=0; $i < count($request->type); $i++) {
-            $item['type'] = $request->type[$i];
-            $item['label'] = $request->label[$i];
-            if(in_array($request->type[$i], $select_types)){
-                $item['options'] = json_encode($request['options_'.$request->option[$j]]);
-                $j++;
+            if ($request->type[$i] == 'location') {
+                $item['type'] = $request->type[$i];
+                $item['label'] = 'Location';
+                $location = ['province', 'city', 'district', 'sub_district', 'postal_code'];
+                $item['options'] = json_encode($location);
+                $item['is_required'] = true;
+            } else {
+                $item['type'] = $request->type[$i];
+                $item['label'] = $request->label[$i];
+                if(in_array($request->type[$i], $select_types)){
+                    $item['options'] = json_encode($request['options_'.$request->option[$j]]);
+                    $j++;
+                }
+                $item['is_required'] = $request->required[$i];
             }
             array_push($form, $item);
         }
@@ -352,7 +370,7 @@ class BusinessSettingsController extends Controller
         $business_settings->value = json_encode($form);
         if($business_settings->save()){
             Artisan::call('cache:clear');
-
+            
             flash(translate("Verification form updated successfully"))->success();
             return back();
         }
@@ -360,7 +378,6 @@ class BusinessSettingsController extends Controller
 
     public function update(Request $request)
     {
-
 
         foreach ($request->types as $key => $type) {
             if($type == 'site_name'){
@@ -378,7 +395,6 @@ class BusinessSettingsController extends Controller
                 }else{
                     $business_settings = BusinessSetting::where('type', $type)->first();
                 }
-
 
                 if($business_settings!=null){
                     if(gettype($request[$type]) == 'array'){

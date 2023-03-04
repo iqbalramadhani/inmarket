@@ -10,6 +10,6 @@ class ComplainImage extends Model
     protected $guarded = [];
 
     public function detail() {
-        return $this->belongsTo(\App\Upload::class, 'thumbnail_img', 'id')->first();
+        return $this->belongsTo(\App\Models\Upload::class, 'thumbnail_img', 'id')->first();
     }
 }

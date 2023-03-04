@@ -8,6 +8,12 @@
         </div>
 
     	<div class="card-body">
+            <div class="mb-3">
+                @php
+                                $removedXML = '<?xml version="1.0" encoding="UTF-8"?>';
+                            @endphp
+                            {!! str_replace($removedXML,"", QrCode::size(100)->generate($order->code)) !!}
+            </div>
             <div class="row gutters-5">
                 <div class="col text-center text-md-left">
                     <address>
@@ -57,7 +63,7 @@
                         </tr>
                         <tr>
                             <td class="text-main text-bold">{{translate('Payment method')}}</td>
-                            <td class="text-right">{{ ucfirst(str_replace('_', ' ', $order->payment_type)) }}</td>
+                            <td class="text-right">{{ translate(ucfirst(str_replace('_', ' ', $order->payment_type))) }}</td>
                         </tr>
                       </tbody>
                   </table>
@@ -87,7 +93,7 @@
         				</thead>
         				<tbody>
                     @php
-                    $admin_user_id = \App\User::where('user_type', 'admin')->first()->id;
+                    $admin_user_id = \App\Models\User::where('user_type', 'admin')->first()->id;
                     @endphp
                     @foreach ($order->orderDetails->where('seller_id', '!=', $admin_user_id) as $key => $orderDetail)
                         <tr>
@@ -108,14 +114,14 @@
                                 @endif
                             </td>
                             <td>
-                                @if ($orderDetail->shipping_type != null && $orderDetail->shipping_type == 'home_delivery')
-                                  {{ translate('Home Delivery') }}
-                                @elseif ($orderDetail->shipping_type == 'pickup_point')
-                                  @if ($orderDetail->pickup_point != null)
-                                    {{ $orderDetail->pickup_point->getTranslation('name') }} ({{ translate('Pickup Point') }})
-                                  @else
-                                    {{ translate('Pickup Point') }}
-                                  @endif
+                                @if ($order->shipping_type != null && $order->shipping_type == 'home_delivery')
+                                    {{ translate('Home Delivery') }}
+                                @elseif ($order->shipping_type == 'pickup_point')
+                                    @if ($order->pickup_point != null)
+                                        {{ $order->pickup_point->getTranslation('name') }} ({{ translate('Pickup Point') }})
+                                    @else
+                                        {{ translate('Pickup Point') }}
+                                    @endif
                                 @endif
                             </td>
                             <td class="text-center">{{ $orderDetail->quantity }}</td>

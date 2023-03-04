@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-@if(\App\Language::where('code', Session::get('locale', Config::get('app.locale')))->first()->rtl == 1)
+@if(\App\Models\Language::where('code', Session::get('locale', Config::get('app.locale')))->first()->rtl == 1)
 <html dir="rtl" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 @else
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -21,27 +21,27 @@
     @yield('meta')
 
     @if(!isset($detailedProduct) && !isset($customer_product) && !isset($shop) && !isset($page) && !isset($blog))
-    <!-- Schema.org markup for Google+ -->
-    <meta itemprop="name" content="{{ get_setting('meta_title') }}">
-    <meta itemprop="description" content="{{ get_setting('meta_description') }}">
-    <meta itemprop="image" content="{{ uploaded_asset(get_setting('meta_image')) }}">
+        <!-- Schema.org markup for Google+ -->
+        <meta itemprop="name" content="{{ get_setting('meta_title') }}">
+        <meta itemprop="description" content="{{ get_setting('meta_description') }}">
+        <meta itemprop="image" content="{{ uploaded_asset(get_setting('meta_image')) }}">
 
-    <!-- Twitter Card data -->
-    <meta name="twitter:card" content="product">
-    <meta name="twitter:site" content="@publisher_handle">
-    <meta name="twitter:title" content="{{ get_setting('meta_title') }}">
-    <meta name="twitter:description" content="{{ get_setting('meta_description') }}">
-    <meta name="twitter:creator" content="@author_handle">
-    <meta name="twitter:image" content="{{ uploaded_asset(get_setting('meta_image')) }}">
+        <!-- Twitter Card data -->
+        <meta name="twitter:card" content="product">
+        <meta name="twitter:site" content="@publisher_handle">
+        <meta name="twitter:title" content="{{ get_setting('meta_title') }}">
+        <meta name="twitter:description" content="{{ get_setting('meta_description') }}">
+        <meta name="twitter:creator" content="@author_handle">
+        <meta name="twitter:image" content="{{ uploaded_asset(get_setting('meta_image')) }}">
 
-    <!-- Open Graph data -->
-    <meta property="og:title" content="{{ get_setting('meta_title') }}" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="{{ route('home') }}" />
-    <meta property="og:image" content="{{ uploaded_asset(get_setting('meta_image')) }}" />
-    <meta property="og:description" content="{{ get_setting('meta_description') }}" />
-    <meta property="og:site_name" content="{{ env('APP_NAME') }}" />
-    <meta property="fb:app_id" content="{{ env('FACEBOOK_PIXEL_ID') }}">
+        <!-- Open Graph data -->
+        <meta property="og:title" content="{{ get_setting('meta_title') }}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="{{ route('home') }}" />
+        <meta property="og:image" content="{{ uploaded_asset(get_setting('meta_image')) }}" />
+        <meta property="og:description" content="{{ get_setting('meta_description') }}" />
+        <meta property="og:site_name" content="{{ env('APP_NAME') }}" />
+        <meta property="fb:app_id" content="{{ env('FACEBOOK_PIXEL_ID') }}">
     @endif
 
     <!-- Favicon -->
@@ -52,18 +52,20 @@
 
     <!-- CSS Files -->
     <link rel="stylesheet" href="{{ static_asset('assets/css/vendors.css') }}">
-    @if(\App\Language::where('code', Session::get('locale', Config::get('app.locale')))->first()->rtl == 1)
+    @if(\App\Models\Language::where('code', Session::get('locale', Config::get('app.locale')))->first()->rtl == 1)
     <link rel="stylesheet" href="{{ static_asset('assets/css/bootstrap-rtl.min.css') }}">
     @endif
     <link rel="stylesheet" href="{{ static_asset('assets/css/aiz-core.css') }}">
     <link rel="stylesheet" href="{{ static_asset('assets/css/custom-style.css') }}">
+    <link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css" rel="stylesheet">
 
 
     <script>
         var AIZ = AIZ || {};
         AIZ.local = {
-            nothing_selected: '{{ translate('Nothing selected') }}',
-            nothing_found: '{{ translate('Nothing found') }}',
+            nothing_selected: '{!! translate('Nothing selected', null, true) !!}',
+            nothing_found: '{!! translate('Nothing found', null, true) !!}',
             choose_file: '{{ translate('Choose file') }}',
             file_selected: '{{ translate('File selected') }}',
             files_selected: '{{ translate('Files selected') }}',
@@ -144,7 +146,7 @@
     echo get_setting('header_script');
 @endphp
 
-    @yield('style')
+@yield('style')
 
 </head>
 <body>
@@ -222,23 +224,17 @@
         </div>
     </div>
 
-    <div class="modal fade" id="order_details" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-            <div class="modal-content">
-                <div id="order-details-modal-body">
-
-                </div>
-            </div>
-        </div>
-    </div>
-
     @yield('modal')
 
     <!-- SCRIPTS -->
     <script src="{{ static_asset('assets/js/vendors.js') }}"></script>
-    <script src="{{ static_asset('assets/js/autoNumeric.min.js') }}"></script>
     <script src="{{ static_asset('assets/js/aiz-core.js') }}"></script>
-
+    <script type="text/javascript" src="{{ static_asset('assets/js/jquery-mask/jquery.mask.js') }}"></script>
+    <script type="text/javascript" src="{{ static_asset('assets/js/jquery-mask/jquery.mask.min.js') }}"></script>
+    <script type="text/javascript" src="{{ static_asset('assets/js/sweetalert.min.js') }}"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
 
 
     @if (get_setting('facebook_chat') == 1)
@@ -437,7 +433,7 @@
                        else{
                            $('.buy-now').removeClass('d-none');
                            $('.add-to-cart').removeClass('d-none');
-                           $('.out-of-stock').addClass('d-none');
+                        //    $('.out-of-stock').addClass('d-none');
                        }
                    }
                });
@@ -476,6 +472,7 @@
                        $('#modal-size').removeClass('modal-lg');
                        $('#addToCart-modal-body').html(data.modal_view);
                        AIZ.extra.plusMinus();
+                       AIZ.plugins.slickCarousel();
                        updateNavCart(data.nav_cart_view,data.cart_count);
                     }
                 });
@@ -497,7 +494,6 @@
                    success: function(data){
                        if(data.status == 1){
 
-                            $('#addToCart-modal-body').html(data.modal_view);
                             updateNavCart(data.nav_cart_view,data.cart_count);
 
                             window.location.replace("{{ route('cart') }}");
@@ -531,20 +527,6 @@
             });
         }
 
-        function show_order_details(order_id)
-        {
-            $('#order-details-modal-body').html(null);
-
-            if(!$('#modal-size').hasClass('modal-lg')){
-                $('#modal-size').addClass('modal-lg');
-            }
-
-            $.post('{{ route('orders.details') }}', { _token : AIZ.data.csrf, order_id : order_id}, function(data){
-                $('#order-details-modal-body').html(data);
-                $('#order_details').modal();
-                $('.c-preloader').hide();
-            });
-        }
 
     </script>
 
@@ -553,6 +535,8 @@
     @php
         echo get_setting('footer_script');
     @endphp
+
+    @include('sweetalert::alert', ['cdn' => "https://cdn.jsdelivr.net/npm/sweetalert2@9"])
 
 </body>
 </html>

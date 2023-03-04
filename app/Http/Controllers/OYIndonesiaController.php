@@ -5,13 +5,19 @@ namespace App\Http\Controllers;
 // use Illuminate\Http;
 
 use App\Http\Controllers\CheckoutController;
+use App\Mail\InvoiceEmailManager;
+use App\Models\Cart;
 use App\Models\OYIndonesia;
 use App\Models\UserBankAccount;
-use App\Order;
-use App\Wallet;
+use App\Models\Order;
+use App\Models\OrderDetail;
+use App\Models\ProductStock;
+use App\Models\Wallet;
 use Auth;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Http\Request;
+use Mail;
 use Session;
 use Uuid;
 
@@ -103,7 +109,11 @@ class OYIndonesiaController extends Controller
 
         $user = Auth()->user();
 
-        if($user->balance - $request->amount < 0) {
+        $withdraw_fee = env('OYID_WITHDRAW_ADMIN_FEE');
+
+        $withdraw_amount = $request->amount + $withdraw_fee;
+
+        if($user->balance - $withdraw_amount < 0) {
             flash(translate('Wallet amount is not sufficient'))->error();
             return back();
         }
@@ -156,6 +166,7 @@ class OYIndonesiaController extends Controller
             'user_id' => $user->id,
             'type' => 'DISBURSEMENT',
             'amount' => $request->amount,
+            'admin_fee' => env('OYID_WITHDRAW_ADMIN_FEE'),
             'payment_method' => 'OY_ID',
             'payment_details' => '-',
             'partner_trx_id' => $result->partner_trx_id,
@@ -177,7 +188,7 @@ class OYIndonesiaController extends Controller
         Session::put('_old_token', Session::get('_token'));
 
         if ($result->status->code == 101) {
-            flash(translate($result->status->message . ' Please manually check your disburstment status'))->success();
+            flash(translate($result->status->message . ' Please manually check your disbursment status'))->success();
         } else {
             flash(translate($result->status->message . 'Please try again'))->error();
         }
@@ -288,7 +299,7 @@ class OYIndonesiaController extends Controller
         } else if ($wallet->type == 'DISBURSEMENT') {
             $response = json_decode($wallet->oy_withdraw->response);
             if ($response->status->code == '101') {
-                $user->balance = $user->balance - $wallet->amount;
+                $user->balance = $user->balance - $wallet->amount - $wallet->admin_fee;
             } else if (json_decode($wallet->oy_withdraw->response)->status->code == '000') {
             } else {
                 $user->balance = $user->balance + $wallet->amount;
@@ -451,6 +462,42 @@ class OYIndonesiaController extends Controller
                 $order->orderDetails()->update([
                     'payment_status' => 'paid',
                     'delivery_status' => 'confirmed',
+                ]);
+
+                $array['view'] = 'emails.invoice';
+                $array['subject'] = translate('Your order has been placed') . ' - ' . $order->code;
+                $array['from'] = env('MAIL_FROM_ADDRESS');
+                $array['order'] = $order;
+
+                try {
+                    Mail::to(\App\Models\User::find($order->seller_id)->email)->queue(new InvoiceEmailManager($array));
+                } catch (\Exception $e) {
+
+                }
+            }
+                
+        } else if ($result->data->status == 'waiting_payment') {
+            $orders_query->update([
+                'payment_status' => 'waiting_payment',
+                'delivery_status' => 'pending',
+            ]);
+
+            foreach ($orders as $order) {
+                $order->orderDetails()->update([
+                    'payment_status' => 'waiting_payment',
+                    'delivery_status' => 'pending',
+                ]);
+            }
+        } else if ($result->data->status == 'failed') {
+            $orders_query->update([
+                'payment_status' => 'failed',
+                'delivery_status' => 'pending',
+            ]);
+
+            foreach ($orders as $order) {
+                $order->orderDetails()->update([
+                    'payment_status' => 'failed',
+                    'delivery_status' => 'pending',
                 ]);
             }
         }
@@ -642,6 +689,7 @@ class OYIndonesiaController extends Controller
 
         $orders = Order::whereIn('id', Session::get('order_ids'))->get();
         $status = 'pending';
+        $partner_trx_id = (string) Uuid::generate(3, implode(',', $orders->pluck('code')->toArray()), Uuid::NS_DNS);
         if (Session::has('payment_type')) {
             if (Session::get('payment_type') == 'cart_payment') {
                 $partner_trx_id = (string) Uuid::generate(3, implode(',', $orders->pluck('code')->toArray()), Uuid::NS_DNS);
@@ -697,6 +745,7 @@ class OYIndonesiaController extends Controller
         
         
         $result = json_decode($body);
+        // dd($result);
         // dd(!$result->status);
         if (!$result->status && $result->message == "partner_tx_id must be unique") {
             // dd($partner_trx_id);
@@ -724,13 +773,15 @@ class OYIndonesiaController extends Controller
                 $order->update([
                     'oy_trx_id' => $partner_trx_id,
                 ]);
+
+                Cart::where('owner_id', $order->seller_id)->where('user_id', $order->user_id)->delete();
             }
 
             $order_ids = Session::get('order_ids');
             $payment = Session::get('payment_type');
             $orders = Order::WhereIn('id', $order_ids)->get();
 
-            Session::forget('_old_order_id');
+            // Session::forget('_old_order_id');
 
             //Autostep 5
             /** */
@@ -745,5 +796,57 @@ class OYIndonesiaController extends Controller
             return view('frontend.oyid.order_payment_oyid', compact('result', 'sub_type', 'orders', 'status', 'partner_trx_id'));
         }
 
+    }
+
+    public function checkUpdateStokPayment(){
+        $order = Order::where('check_by_cron',0)->get();
+        $client = new \GuzzleHttp\Client();
+        
+        DB::beginTransaction();
+        try {
+            foreach($order as $or){
+                $response = $client->request('GET', env('OYID_BASEURL') . '/api/payment-checkout/status?send_callback=true&partner_tx_id=' . $or->oy_trx_id, [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'x-oy-username' => env('OYID_USERNAME'),
+                        'x-api-key' => env('OYID_APIKEY'),
+                    ],
+                    'timeout' => 50,
+                ]);
+    
+                $result = json_decode($response->getBody());
+    
+                if($result->success == true){
+                    if($result->data->status == 'expired'){
+                        foreach($or->orderDetails as $ord){
+                            $ord->payment_status = 'expired';
+                            $ord->save();
+    
+                            $product_stock = ProductStock::where('product_id', $ord->product_id)->first();
+                            $product_stock->qty += $ord->quantity;
+                            $product_stock->save();
+                        }
+                    }
+                }
+    
+                $or->update([
+                    'check_by_cron' => 1,
+                    'payment_status' => 'expired',
+                ]);
+    
+                sleep(10);
+    
+            }
+    
+            Session::forget('_old_order_id');
+            
+            DB::commit();
+    
+            echo "done cron";
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+        
     }
 }

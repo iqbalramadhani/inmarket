@@ -58,10 +58,10 @@
 			</div>
 
 			<div class="form-group row">
-					<label class="col-sm-2 col-from-label" for="name">{{translate('Meta Description')}}</label>
-					<div class="col-sm-10">
-						<textarea class="resize-off form-control" placeholder="{{translate('Description')}}" name="meta_description"></textarea>
-					</div>
+				<label class="col-sm-2 col-from-label" for="name">{{translate('Meta Description')}}</label>
+				<div class="col-sm-10">
+					<textarea class="resize-off form-control" placeholder="{{translate('Description')}}" name="meta_description"></textarea>
+				</div>
 			</div>
 
 			<div class="form-group row">

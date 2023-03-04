@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Customers;
 use App\Http\Controllers\Controller;
 use App\Models\RajaOngkirCity;
 use App\Models\RajaOngkirSubdistrict;
-use App\Models\RajaOnkirProvince;
+use App\Models\RajaOngkirProvince;
 use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
 
@@ -13,7 +13,7 @@ class AddressController extends Controller
 {
     public function ajaxGetProvinces()
     {
-        $provinces = RajaOnkirProvince::orderBy('province_name', 'asc')->get();
+        $provinces = RajaOngkirProvince::orderBy('province_name', 'asc')->get();
         return response()->json($provinces);
     }
 

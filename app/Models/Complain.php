@@ -24,10 +24,10 @@ class Complain extends Model
     }
 
     public function order_detail() {
-        return $this->hasOne(\App\OrderDetail::class, 'id', 'order_detail_id');
+        return $this->hasOne(\App\Models\OrderDetail::class, 'id', 'order_detail_id');
     }
     
     public function order() {
-        return $this->hasOne(\App\Order::class, 'id', 'order_id');
+        return $this->hasOne(\App\Models\Order::class, 'id', 'order_id');
     }
 }

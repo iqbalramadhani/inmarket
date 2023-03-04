@@ -15,13 +15,13 @@
                 <!--amount need to be in paisa-->
                 <script src="https://checkout.razorpay.com/v1/checkout.js"
                         data-key="{{ env('RAZOR_KEY') }}"
-                        data-amount={{round($order->grand_total) * 100}}
+                        data-amount={{round($combined_order->grand_total) * 100}}
                         data-buttontext=""
                         data-name="{{ env('APP_NAME') }}"
                         data-description="Cart Payment"
                         data-image="{{ uploaded_asset(get_setting('header_logo')) }}"
-                        data-prefill.name= "{{ Auth::user()->name}}"
-                        data-prefill.email= "{{ Auth::user()->email}}"
+                        data-prefill.name= "{{ $user->name}}"
+                        data-prefill.email= "{{ $user->email}}"
                         data-theme.color="#ff7529">
                 </script>
                 <input type="hidden" name="_token" value="{!!csrf_token()!!}">
@@ -31,7 +31,6 @@
 
     <!-- SCRIPTS -->
     <script src="{{ static_asset('assets/js/vendors.js') }}"></script>
-    <script src="{{ static_asset('assets/js/aiz-core.js') }}"></script>
 
     <script type="text/javascript">
         $(document).ready(function(){

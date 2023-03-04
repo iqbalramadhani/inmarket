@@ -2,31 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\BusinessSetting;
+use Illuminate\Http\Request;
+use App\Models\Shop;
+use App\Models\User;
+use App\Models\Seller;
 use App\Models\Courier;
 use App\Models\RajaOngkirCity;
 use App\Models\RajaOngkirSubdistrict;
-use App\Models\RajaOnkirProvince;
-use App\Notifications\EmailVerificationNotification;
-use App\Seller;
-use App\Shop;
+use App\Models\RajaOngkirProvince;
+use App\Models\BusinessSetting;
 use App\Models\Verification;
-use App\User;
-use App\Mail\ShopStatusChange;
-use Illuminate\Support\Facades\Mail;
+use App\Models\IndonesiaProvince;
+use App\Models\IndonesiaCity;
+use App\Models\IndonesiaDistrict;
+use App\Models\IndonesiaVillage;
+use App\Models\Upload;
 use Auth;
 use Hash;
-use Illuminate\Http\Request;
-
-use App\Models\City;
-use App\Models\District;
-use App\Models\PostalCode;
-use App\Models\Province;
-use App\Models\SubDistrict;
 use Validator;
-use App\Mail\UserRegistered;
-Use App\Mail\SellerVerification;
-Use App\Mail\SellerVerificationAdmin;
+use App\Notifications\EmailVerificationNotification;
+use Image;
+use Storage;
 
 class ShopController extends Controller
 {
@@ -49,7 +45,6 @@ class ShopController extends Controller
         $city = RajaOngkirCity::where('city_id', $shop->city_id)->first();
         $sub_district = RajaOngkirSubdistrict::where('subdistrict_id', $shop->subdistrict_id)->first();
 
-
         if(!$city){
             $province_id = NULL;
         }else{
@@ -62,14 +57,15 @@ class ShopController extends Controller
         }
 
         $locations = [
-            'provinces' => RajaOnkirProvince::orderby('province_name', 'ASC')->get(),
-            'cities' => RajaOngkirCity::where('province_id', $province_id)->orderby('city_name', 'ASC')->get(),
-            'sub_districts' => RajaOngkirSubdistrict::where('city_id', $sub_district_id)->orderby('subdistrict_name', 'ASC')->get(),
+            'provinces' => RajaOngkirProvince::orderBy('province_name', 'ASC')->get(),
+            'cities' => RajaOngkirCity::where('province_id', $province_id)->orderBy('city_name', 'ASC')->get(),
+            'sub_districts' => RajaOngkirSubdistrict::where('city_id', $sub_district_id)->orderBy('subdistrict_name', 'ASC')->get(),
         ];
 
+        $laravolt_locations = $this->get_data_laravolt($shop);
         $couriers = Courier::all();
 
-        return view('frontend.user.seller.shop', compact('shop', 'seller', 'locations', 'couriers'));
+        return view('frontend.user.seller.shop', compact('shop', 'seller', 'locations', 'couriers', 'laravolt_locations'));
     }
 
     /**
@@ -79,10 +75,11 @@ class ShopController extends Controller
      */
     public function create()
     {
-        if (Auth::check() && Auth::user()->user_type == 'admin') {
+        if(Auth::check() && Auth::user()->user_type == 'admin'){
             flash(translate('Admin can not be a seller'))->error();
             return back();
-        } else {
+        }
+        else{
             return view('frontend.seller_form');
         }
     }
@@ -95,38 +92,58 @@ class ShopController extends Controller
      */
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'is_agree_tos_seller' => 'required|boolean'
-        ]);
+
+        $rules = [
+            'input-logo' => 'required|max:1024'
+        ];
+    
+        $customMessages = [
+            'required' => ':attribute wajib diisi.',
+            'string' => ':attribute harus berupa karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+            'min' => ':attribute minimal :min karakter.',
+            'email' => ':attribute harus berupa email yang valid.',
+            'unique' => ':attribute sudah terdaftar.',
+            'boolean' => ':attribute harus berupa boolean.',
+            'confirmed' => 'Konfirmasi password harus sama dengan password.'
+        ];
+
+        $this->validate($request, $rules, $customMessages);
+
 
         $user = null;
-        if (!Auth::check()) {
-            if (User::where('email', $request->email)->first() != null) {
-                flash(translate('Email already exists!'))->error();
-                return back();
-            }
-            if ($request->password == $request->password_confirmation) {
+        if(!Auth::check()){
+
+            $rules = [
+                'password' => 'required|string|min:6|confirmed',
+                'email' => 'required|email|unique:users,email',
+                'is_agree_tos_seller' => 'required|boolean',
+                'input-logo' => 'required|image|mimes:jpg,png,jpeg|max:1024'
+            ];
+            
+            $this->validate($request, $rules, $customMessages);
+            
+            // if(User::where('email', $request->email)->first() != null){
+            //     flash(translate('Email already exists!'))->error();
+            //     return back();
+            // }
+            if($request->password == $request->password_confirmation){
                 $user = new User;
                 $user->name = $request->name;
                 $user->email = $request->email;
                 $user->user_type = "seller";
                 $user->password = Hash::make($request->password);
                 $user->is_agree_tos_seller = true;
-                $save = $user->save();
-
-                if($save) {
-                    $template = new UserRegistered($user);
-                        Mail::to($user->email)->send($template);
-                }
-
-
-            } else {
-                flash(translate('Sorry! Password did not match.'))->error();
-                return back();
+                $user->save();
             }
-        } else {
+            // else{
+            //     flash(translate('Sorry! Password did not match.'))->error();
+            //     return back();
+            // }
+        }else{
+
             $user = Auth::user();
-            if ($user->customer != null) {
+            if($user->customer != null){
                 $user->customer->delete();
             }
             $user->is_agree_tos_seller = true;
@@ -138,38 +155,72 @@ class ShopController extends Controller
         $seller->user_id = $user->id;
         $seller->save();
 
-        if (Shop::where('user_id', $user->id)->first() == null) {
+        $upload = new Upload();
+        $extension = strtolower($request->file('input-logo')->getClientOriginalExtension());
+
+        $upload->file_original_name = null;
+        $arr = explode('.', $request->file('input-logo')->getClientOriginalName());
+        for($i=0; $i < count($arr)-1; $i++){
+            if($i == 0){
+                $upload->file_original_name .= $arr[$i];
+            }
+            else{
+                $upload->file_original_name .= ".".$arr[$i];
+            }
+        }
+
+        $path = $request->file('input-logo')->store('uploads/all', 'local');
+        $size = $request->file('input-logo')->getSize();
+
+        // Return MIME type ala mimetype extension
+        $finfo = finfo_open(FILEINFO_MIME_TYPE); 
+
+        // Get the MIME type of the file
+        $file_mime = finfo_file($finfo, base_path('public/').$path);
+        
+        if (env('FILESYSTEM_DRIVER') == 's3') {
+            Storage::disk('s3')->put(
+                $path,
+                file_get_contents(base_path('public/').$path),
+                [
+                    'visibility' => 'public',
+                    'ContentType' =>  $extension == 'svg' ? 'image/svg+xml' : $file_mime
+                ]
+            );
+            if($arr[0] != 'updates') {
+                unlink(base_path('public/').$path);
+            }
+        }
+
+        $upload->extension = $extension;
+        $upload->file_name = $path;
+        $upload->user_id = $user->id;
+        $upload->type = "image";
+        $upload->file_size = $size;
+        $upload->save();
+
+        if(Shop::where('user_id', $user->id)->first() == null){
             $shop = new Shop;
             $shop->user_id = $user->id;
-            $shop->name = $request->name;
+            $shop->name = $request->shop_name;
             $shop->address = $request->address;
 
-            $shop->city = City::find($request->input('city'))->name;
-            $shop->province = Province::find($request->input('province'))->name;
-            $shop->district = District::find($request->input('district'))->name;
-            $shop->sub_district = SubDistrict::find($request->input('sub_district'))->name;
-            $shop->postal_code = PostalCode::find($request->input('postal_code'))->kodepos;
+            $shop->indonesia_province_id = $request->province;
+            $shop->indonesia_city_id = $request->city;
+            $shop->indonesia_district_id = $request->district;
+            $shop->indonesia_subdistrict_id = $request->sub_district;
+            $shop->postal_code = $request->postal_code;
+            $shop->logo = $upload->id;
 
-            $shop->slug = preg_replace('/\s+/', '-', $request->name) . '-' . $shop->id;
+            $shop->slug = preg_replace('/\s+/', '-', $request->name).'-'.$shop->id;
 
-            if ($shop->save()) {
-
-                $staff = User::where('user_type', 'staff')->get();
-                // dd($admin);
-
-                $template_admin = new SellerVerificationAdmin($shop);
-                foreach($staff as $re) {
-                    Mail::to($re->email)->send($template_admin);
-                }
-
-                $template = new SellerVerification($shop);
-                Mail::to($user->email)->send($template);
-
+            if($shop->save()){
                 auth()->login($user, false);
-                if (BusinessSetting::where('type', 'email_verification')->first()->value != 1) {
+                if(BusinessSetting::where('type', 'email_verification')->first()->value != 1){
                     $user->email_verified_at = date('Y-m-d H:m:s');
                     $user->save();
-                } else {
+                }
+                else {
                     $user->notify(new EmailVerificationNotification());
                 }
 
@@ -188,24 +239,28 @@ class ShopController extends Controller
                     } elseif ($element->type == 'multi_select') {
                         $item['type'] = 'multi_select';
                         $item['label'] = $element->label;
-                        $item['value'] = json_encode($request['element_' . $i]);
+                        $item['value'] = $request['element_' . $i] ? json_encode($request['element_' . $i]) : null;
                     } elseif ($element->type == 'file') {
                         $item['type'] = 'file';
                         $item['label'] = $element->label;
                         $item['value'] = $request['element_' . $i]->store('uploads/verification_form');
+                    } elseif ($element->type == 'location') {
+                        $item['type'] = 'location';
+                        $item['label'] = $element->label;
+                        $item['value'] = null;
                     }
                     array_push($data, $item);
                     $i++;
                 }
-
                 $seller->verification_info = json_encode($data);
+
                 if ($seller->save()) {
-                    // flash(translate('Your shop verification request has been submitted successfully!'))->success();
-                    // return redirect()->route('dashboard');
+
                     flash(translate('Your Shop has been created successfully!, and verification request has been submitted successfully'))->success();
                     return redirect()->route('dashboard');
                 }
-            } else {
+            }
+            else{
                 $seller->delete();
                 $user->user_type == 'customer';
                 $user->save();
@@ -249,8 +304,7 @@ class ShopController extends Controller
     {
         $shop = Shop::find($id);
 
-        // dd($request->all());
-        $c = Validator::make($request->all(), [
+        $validate = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => [
                 'required',
@@ -261,52 +315,56 @@ class ShopController extends Controller
         if(isset($request->_validate) && $request->_validate == 0) {
             //null
         } else {    
-            if ($c->fails()) {
+            if ($validate->fails()) {
                 return redirect()->route('shops.index')
-                ->withErrors($c);
+                ->withErrors($validate);
             }
         }
 
-        if ($request->has('name') && $request->has('address')) {
-            $shop->name = $request->name;
-            if ($request->has('shipping_cost')) {
-                $shop->shipping_cost = $request->shipping_cost;
-            }
-            $shop->address = $request->address;
-
-            $shop->city_id = $request->input('city');
-            $shop->province_id = $request->input('province');
-            $shop->subdistrict_id = $request->input('sub_district');
-            $shop->postal_code = $request->input('postal_code');
-
-            $shop->phone = $request->phone;
-            $shop->slug = preg_replace('/\s+/', '-', $request->name) . '-' . $shop->id;
-
-            $shop->meta_title = $request->meta_title;
-            $shop->meta_description = $request->meta_description;
-            $shop->logo = $request->logo;
-
-            if ($request->has('pick_up_point_id')) {
-                $shop->pick_up_point_id = json_encode($request->pick_up_point_id);
+        try {
+            if($request->has('name') && $request->has('address_laravolt')){
+                if ($request->has('shipping_cost')) {
+                    $shop->shipping_cost = $request->shipping_cost;
+                }
+                
+                $shop->name             = $request->name;
+                $shop->address          = $request->address_laravolt;
+                $shop->phone            = $request->phone;
+                $shop->slug             = preg_replace('/\s+/', '-', $request->name).'-'.$shop->id;
+                $shop->meta_title       = $request->meta_title ?? null;
+                $shop->meta_description = $request->meta_description ?? null;
+                $shop->logo             = $request->logo ?? null;
+    
+                $shop->indonesia_province_id = $request->province_laravolt;
+                $shop->indonesia_city_id = $request->city_laravolt;
+                $shop->indonesia_district_id = $request->district_laravolt;
+                $shop->indonesia_subdistrict_id = $request->sub_district_laravolt;
+                $shop->postal_code = $request->postal_code;
+    
+                if ($request->has('pick_up_point_id')) {
+                    $shop->pick_up_point_id = json_encode($request->pick_up_point_id);
+                } else {
+                    $shop->pick_up_point_id = json_encode(array());
+                }
+            } else if ($request->has('facebook') || $request->has('google') || $request->has('twitter') || $request->has('youtube') || $request->has('instagram')){
+                $shop->facebook = $request->facebook;
+                $shop->google = $request->google;
+                $shop->twitter = $request->twitter;
+                $shop->youtube = $request->youtube;
             } else {
-                $shop->pick_up_point_id = json_encode(array());
+                $shop->sliders = $request->sliders;
             }
-        } elseif ($request->has('facebook') || $request->has('google') || $request->has('twitter') || $request->has('youtube') || $request->has('instagram')) {
-            $shop->facebook = $request->facebook;
-            $shop->google = $request->google;
-            $shop->twitter = $request->twitter;
-            $shop->youtube = $request->youtube;
-        } else {
-            $shop->sliders = $request->sliders;
-        }
-
-        if ($shop->save()) {
-            flash(translate('Your Shop has been updated successfully!'))->success();
+    
+            if($shop->save()){
+                flash(translate('Your Shop has been updated successfully!'))->success();
+                return back();
+            }
+        } catch (\Exception $e) {
+            // dd($e->getMessage());
+            flash(translate('Sorry! Something went wrong.'))->error();
             return back();
         }
-
-        flash(translate('Sorry! Something went wrong.'))->error();
-        return back();
+        
     }
 
     /**
@@ -322,26 +380,15 @@ class ShopController extends Controller
 
     public function verify_form(Request $request)
     {
-        // $shop = Auth::user()->shop;
-        $seller = Seller::where('user_id', Auth()->user()->id)->firstorFail();
-        if($seller->verification_status==1) {
-            $verify_history = Verification::where("user_id", Auth()->user()->id)->orderBy('id', 'DESC')->paginate(15);
-            return view('frontend.user.seller.verify_form', compact('verify_history'));
-        } else {
-            flash(translate('Silahakan verifikasi terlebih dahulu.'))->error();
-            return redirect()->route('dashboard');
+        if(Auth::user()->seller->verification_info == null){
+            $shop = Auth::user()->shop;
+            return view('frontend.user.seller.verify_form', compact('shop'));
+        }
+        else {
+            flash(translate('Sorry! You have sent verification request already.'))->error();
+            return back();
         }
     }
-
-    public function history(Request $request)
-    {
-        $shop = Auth::user()->shop;
-        $verify_history = Verification::where("user_id", $shop->user_id)->paginate(15);
-
-        return view('frontend.user.seller.verify_form', compact('shop', 'seller', 'verify_history'));
-    }
-
-
 
     public function verify_form_store(Request $request)
     {
@@ -352,26 +399,29 @@ class ShopController extends Controller
             if ($element->type == 'text') {
                 $item['type'] = 'text';
                 $item['label'] = $element->label;
-                $item['value'] = $request['element_' . $i];
-            } elseif ($element->type == 'select' || $element->type == 'radio') {
+                $item['value'] = $request['element_'.$i];
+            }
+            elseif ($element->type == 'select' || $element->type == 'radio') {
                 $item['type'] = 'select';
                 $item['label'] = $element->label;
-                $item['value'] = $request['element_' . $i];
-            } elseif ($element->type == 'multi_select') {
+                $item['value'] = $request['element_'.$i];
+            }
+            elseif ($element->type == 'multi_select') {
                 $item['type'] = 'multi_select';
                 $item['label'] = $element->label;
-                $item['value'] = json_encode($request['element_' . $i]);
-            } elseif ($element->type == 'file') {
+                $item['value'] = json_encode($request['element_'.$i]);
+            }
+            elseif ($element->type == 'file') {
                 $item['type'] = 'file';
                 $item['label'] = $element->label;
-                $item['value'] = $request['element_' . $i]->store('uploads/verification_form');
+                $item['value'] = $request['element_'.$i]->store('uploads/verification_form');
             }
             array_push($data, $item);
             $i++;
         }
         $seller = Auth::user()->seller;
         $seller->verification_info = json_encode($data);
-        if ($seller->save()) {
+        if($seller->save()){
             flash(translate('Your shop verification request has been submitted successfully!'))->success();
             return redirect()->route('dashboard');
         }
@@ -382,93 +432,117 @@ class ShopController extends Controller
 
     public function verify_form_update(Request $request)
     {
-
         $oldData = json_decode(Seller::where('user_id', Auth()->user()->id)->get()->first()->verification_info) ?? [];
         $data = array();
         $dataChange = array();
         $i = 0;
-        foreach (json_decode(BusinessSetting::where('type', 'verification_form')->first()->value) as $key => $element) {
-            $item = array();
-
-            $keys = array_keys(array_column($oldData, 'type'), $element->type);
-            foreach ($keys as $kunci) {
-                $item = [];
-
-                // if ($i == 23) {
-                //     // dd(($oldData[$kunci]->label == $element->label && $request['element_' . $i] == $oldData[$kunci]->value));
-                //     dump($kunci, $oldData[$kunci]->label, $element->label, $request['element_' . $i], $oldData[$kunci]->value);
-                // }
-
-                if ($oldData[$kunci]->label == $element->label && ($request['element_' . $i] == $oldData[$kunci]->value || $request['element_' . $i] == null)) {
-                    $item['label'] = $element->label;
-                    $item['value'] = $oldData[$kunci]->value;
-                    $item['type'] = $element->type;
-                    array_push($data, $item);
-                    $i++;
-                    continue 2;
-                } else if ($oldData[$kunci]->label == $element->label && $request['element_' . $i] != $oldData[$kunci]->value) {
-                    $item['label'] = $element->label;
-                    $item['value'] = $oldData[$kunci]->value;
-                    $item['type'] = $element->type;
-                    $item['old_value'] = $oldData[$kunci]->value;
-                    break;
+        try {
+            foreach (json_decode(BusinessSetting::where('type', 'verification_form')->first()->value) as $key => $element) {
+                $item = array();
+    
+                $keys = array_keys(array_column($oldData, 'type'), $element->type);
+                foreach ($keys as $kunci) {
+                    $item = [];
+    
+                    if ($oldData[$kunci]->label == $element->label && ($request['element_' . $i] == $oldData[$kunci]->value || $request['element_' . $i] == null)) {
+                        $item['label'] = $element->label;
+                        $item['value'] = $oldData[$kunci]->value;
+                        $item['type'] = $element->type;
+                        array_push($data, $item);
+                        $i++;
+                        continue 2;
+                    } else if ($oldData[$kunci]->label == $element->label && $request['element_' . $i] != $oldData[$kunci]->value) {
+                        $item['label'] = $element->label;
+                        $item['value'] = $oldData[$kunci]->value;
+                        $item['type'] = $element->type;
+                        $item['old_value'] = $oldData[$kunci]->value;
+                        break;
+                    }
                 }
-            }
-
-            // dd($item);
-
-            if ($element->type == 'text') {
-                $item['type'] = $element->type;
-                $item['label'] = $element->label;
-                $item['value'] = $request['element_' . $i];
-            } elseif ($element->type == 'select' || $element->type == 'radio') {
-                $item['type'] = $element->type;
-                $item['label'] = $element->label;
-                $item['value'] = $request['element_' . $i];
-            } elseif ($element->type == 'multi_select') {
-                $item['type'] = $element->type;
-                $item['label'] = $element->label;
-                $item['value'] = json_encode($request['element_' . $i]);
-            } elseif ($element->type == 'file') {
-                $item['type'] = $element->type;
-                $item['label'] = $element->label;
-                $item['value'] = '';
-                if($request['element_' . $i]) {
-                    $item['value'] = $request['element_' . $i]->store('uploads/verification_form');
+        
+                if ($element->type == 'text') {
+                    $item['type'] = $element->type;
+                    $item['label'] = $element->label;
+                    $item['value'] = $request['element_' . $i];
+                } elseif ($element->type == 'select' || $element->type == 'radio') {
+                    $item['type'] = $element->type;
+                    $item['label'] = $element->label;
+                    $item['value'] = $request['element_' . $i];
+                } elseif ($element->type == 'multi_select') {
+                    $item['type'] = $element->type;
+                    $item['label'] = $element->label;
+                    $item['value'] = json_encode($request['element_' . $i]);
+                } elseif ($element->type == 'file') {
+                    $item['type'] = $element->type;
+                    $item['label'] = $element->label;
+                    $item['value'] = '';
+                    if($request['element_' . $i]) {
+                        $item['value'] = $request['element_' . $i]->store('uploads/verification_form');
+                    }
+                } elseif ($element->type == 'location') {
+                    $item['type'] = 'location';
+                    $item['label'] = $element->label;
+                    $item['value'] = null;
                 }
+    
+                array_push($dataChange, $item);
+                unset($item['old_value']);
+                array_push($data, $item);
+                $i++;
             }
+    
+            // dd($data, $dataChange);
+            $seller = Auth::user()->seller;
+            $seller->verification_info = json_encode($data);
+    
+            if(count($dataChange)) {
+                $verification = Verification::create([
+                    'user_id' => Auth()->user()->id,
+                    'details' => json_encode($dataChange),
+                ]);
+            }
+    
+            if ($seller->save()) {
+                flash(translate('Your shop verification request has been updated successfully!'))->success();
+                return back();
+            }
+        } catch (\Exception $e) {
+            // dd($e->getMessage());
+            flash(translate('Sorry! Something went wrong.'))->error();
+            return back();
+        }
+        
+    }
 
-            array_push($dataChange, $item);
-            unset($item['old_value']);
-            array_push($data, $item);
-            $i++;
+    private function get_data_laravolt($shop)
+    {
+        $city = IndonesiaCity::where('code', $shop->indonesia_city_id)->first();
+        $district = IndonesiaDistrict::where('code', $shop->indonesia_district_id)->first();
+        $village = IndonesiaVillage::where('code', $shop->indonesia_village_id)->first();
+
+        if(!$city){
+            $indonesia_province_id = NULL;
+        }else{
+            $indonesia_province_id = $shop->indonesia_province_id;
         }
 
-        $shop = Auth::user()->shop;
-        // $admin = User::where('user_type', 'admin')->get();
-        $staff = User::where('user_type', 'staff')->get();
-        // dd($admin);
-        foreach($staff as $re) {
-            Mail::to($re->email)->send(new ShopStatusChange($dataChange, $shop));
-        }
-        // dd($dataChange);
-        // dd($data, $dataChange);
-        $seller = Auth::user()->seller;
-        $seller->verification_info = json_encode($data);
-
-        if(count($dataChange)) {
-            $verification = Verification::create([
-                'user_id' => Auth()->user()->id,
-                'details' => json_encode($dataChange),
-            ]);
+        if (!$district) {
+            $indonesia_city_id = NULL;
+        }else{
+            $indonesia_city_id = $shop->indonesia_city_id;
         }
 
-        if ($seller->save()) {
-            flash(translate('Your shop verification request has been updated successfully!'))->success();
-            return redirect()->route('shops.index');
+        if (!$village) {
+            $indonesia_district_id = NULL;
+        }else{
+            $indonesia_district_id = $shop->indonesia_district_id;
         }
-
-        flash(translate('Sorry! Something went wrong.'))->error();
-        return back();
+        
+        return $datas = [
+            'provinces' => IndonesiaProvince::orderBy('name', 'ASC')->get(),
+            'cities' => IndonesiaCity::where('province_code', $shop->indonesia_province_id)->orderBy('name', 'ASC')->get(),
+            'districts' => IndonesiaDistrict::where('city_code', $shop->indonesia_city_id)->orderBy('name', 'ASC')->get(),
+            'villages' => IndonesiaVillage::where('district_code', $shop->indonesia_district_id)->orderBy('name', 'ASC')->get()
+        ];
     }
 }

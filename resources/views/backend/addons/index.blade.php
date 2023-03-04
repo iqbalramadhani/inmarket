@@ -1,13 +1,12 @@
 @extends('backend.layouts.app')
 
 @section('content')
-
     <div class="">
         <div class="row ">
             <div class="col-md-6">
                 <div class="nav border-bottom aiz-nav-tabs">
                     <a class="p-3 fs-16 text-reset show active" data-toggle="tab" href="#installed">{{ translate('Installed Addon')}}</a>
-                    <a class="p-3 fs-16 text-reset" data-toggle="tab" href="#available">{{ translate('Available Addon')}}</a>
+                    <!-- <a class="p-3 fs-16 text-reset" data-toggle="tab" href="#available">{{ translate('Available Addon')}}</a> -->
                 </div>
             </div>
             <div class="col-md-6 mt-3 mt-sm-0 text-center text-md-right">
@@ -19,40 +18,53 @@
     <div class="tab-content">
         <div class="tab-pane fade in active show" id="installed">
             <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <div class="card">
-                        <div class="card-body">
-                            <ul class="list-group">
-                                @forelse(\App\Addon::all() as $key => $addon)
-                                    <li class="list-group-item">
-                                        <div class="align-items-center d-flex flex-column flex-md-row">
-                                            <img class="h-60px mb-3 mb-md-0" src="{{ static_asset($addon->image) }}" alt="Image">
-                                            <div class="mr-md-3 ml-md-5">
-                                                <h4 class="fs-16 fw-600">{{ ucfirst($addon->name) }}</h4>
-                                            </div>
-                                            <div class="mr-md-3 ml-0">
-                                                <p><small>{{ translate('Version')}}: </small>{{ $addon->version }}</p>
-                                            </div>
-                                            <div class="ml-auto mr-0">
-                                                <label class="aiz-switch mb-0">
-                                                    <input type="checkbox" onchange="updateStatus(this, {{ $addon->id }})" <?php if($addon->activated) echo "checked";?>>
-                                                    <span></span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </li>
-                                @empty
+                @forelse(\App\Models\Addon::all() as $key => $addon)
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card addon-card">
+                            <div class="card-body">
+                                <a><img class="img-fluid" src="{{ static_asset($addon->image) }}"></a>
+                                <div class="pt-4">
+                                    <a class="fs-16 fw-600 text-reset" >{{ ucfirst($addon->name) }}</a>
+                                    <div class="rating mb-2"><p>{{ translate('Version')}}: {{ $addon->version }}</p></div>
+                                    <p class="mar-no text-truncate-3">{{ translate('Description')}} : {{ $addon->description ?? '-' }}</p>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="ml-auto mr-0">
+                                        <label class="aiz-switch mb-0">
+                                            <input type="checkbox" onchange="updateStatus(this, {{ $addon->id }})" <?php if($addon->activated) echo "checked";?>>
+                                            <span style="margin-top: 5px;"></span>
+                                        </label>
+                                    </div>
+                                    <div class="ml-3 mr-0">
+                                        <a href="{{route('addons.logs', $addon->id)}}" class="btn btn-soft-warning btn-icon btn-circle btn-sm" title="{{ translate('View Logs') }}">
+                                            <i class="las la-book"></i>
+                                        </a>
+                                    </div>
+                                    <div class="ml-3 mr-0">
+                                        <a href="javascript:void(0)" class="btn btn-soft-danger btn-icon btn-circle btn-sm confirm-delete" data-href="{{route('addons.delete', $addon->id)}}" title="{{ translate('Delete') }}">
+                                            <i class="las la-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-lg-8 mx-auto">
+                        <div class="card">
+                            <div class="card-body">
+                                <ul class="list-group">
                                     <li class="list-group-item">
                                         <div class="text-center">
                                             <img class="mw-100 h-200px" src="{{ static_asset('assets/img/nothing.svg') }}" alt="Image">
                                             <h5 class="mb-0 h5 mt-3">{{ translate('No Addon Installed')}}</h5>
                                         </div>
                                     </li>
-                                @endforelse
-                            </ul>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @endforelse
             </div>
         </div>
         <div class="tab-pane fade" id="available">
@@ -61,10 +73,10 @@
             </div>
         </div>
     </div>
+@endsection
 
-
-
-
+@section('modal')
+    @include('modals.delete_modal')
 @endsection
 
 @section('script')

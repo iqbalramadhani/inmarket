@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Product;
-use App\ProductStock;
-use App\Category;
-use App\ProductTranslation;
+use App\Models\Product;
+use App\Models\ProductStock;
+use App\Models\Category;
+use App\Models\ProductTranslation;
 use Storage;
-use App\Language;
-use App\Upload;
+use App\Models\Upload;
 use Auth;
 
 class DigitalProductController extends Controller
@@ -113,7 +112,7 @@ class DigitalProductController extends Controller
                 return redirect()->route('digitalproducts.index');
             }
             else{
-                if(\App\Addon::where('unique_identifier', 'seller_subscription')->first() != null && \App\Addon::where('unique_identifier', 'seller_subscription')->first()->activated){
+                if(addon_is_activated('seller_subscription')){
                     $seller = Auth::user()->seller;
                     $seller->remaining_digital_uploads -= 1;
                     $seller->save();

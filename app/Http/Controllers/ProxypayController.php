@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Utility\ProxypayUtility;
-use App\Order;
-use App\ProxyPayment;
-use App\CustomerPackage;
-use App\BusinessSetting;
+use App\Models\Order;
+use App\Models\ProxyPayment;
+use App\Models\CustomerPackage;
+use App\Models\BusinessSetting;
 use Session;
 use Artisan;
 use Auth;
@@ -130,7 +130,7 @@ class ProxypayController extends Controller
                 
                 if($amounts_paid >= $order->grand_total) {
                     $order->payment_status = 'paid';
-                    commission_calculation($order);
+                    calculateCommissionAffilationClubPoint($order);
                     
                     $order->commission_calculated = 1;
                     $order->save();

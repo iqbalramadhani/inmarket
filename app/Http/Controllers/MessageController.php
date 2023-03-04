@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Message;
+use App\Models\Message;
 use Auth;
 
 class MessageController extends Controller
@@ -43,13 +43,13 @@ class MessageController extends Controller
         $message->save();
         $conversation = $message->conversation;
         if ($conversation->sender_id == Auth::user()->id) {
-            $conversation->receiver_viewed =0;
+            $conversation->receiver_viewed ="1";
         }
         elseif($conversation->receiver_id == Auth::user()->id) {
-            $conversation->sender_viewed =0;
+            $conversation->sender_viewed ="1";
         }
         $conversation->save();
-
+        
         return back();
     }
 

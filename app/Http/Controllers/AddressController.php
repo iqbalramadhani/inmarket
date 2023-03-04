@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Address;
-use App\Models\City;
-use App\Models\District;
-use App\Models\PostalCode;
-use App\Models\Province;
-use App\Models\SubDistrict;
-use Auth;
 use Illuminate\Http\Request;
+use App\Models\Address;
+use App\Models\City;
+use App\Models\State;
+use Auth;
+use App\Models\RajaOngkirCity;
+use App\Models\RajaOngkirSubdistrict;
+use App\Models\RajaOngkirProvince;
+use App\Models\IndonesiaProvince;
+use App\Models\IndonesiaCity;
+use App\Models\IndonesiaDistrict;
+use App\Models\IndonesiaVillage;
 
 class AddressController extends Controller
 {
@@ -42,10 +46,11 @@ class AddressController extends Controller
     public function store(Request $request)
     {
         $address = new Address;
-        if ($request->has('customer_id')) {
-            $address->user_id = $request->customer_id;
-        } else {
-            $address->user_id = Auth::user()->id;
+        if($request->has('customer_id')){
+            $address->user_id   = $request->customer_id;
+        }
+        else{
+            $address->user_id   = Auth::user()->id;
         }
         $address->address = $request->address;
         $address->country = $request->country;
@@ -85,22 +90,29 @@ class AddressController extends Controller
     public function edit($id)
     {
         $data['address_data'] = $address = Address::findOrFail($id);
-        $data['provinces'] = Province::get();
+        $data['provinces'] = RajaOngkirProvince::get();
 
         if($address->country == 'Indonesia') {
 
-            $city = City::where('name', $address->city)->first();
-            $district = District::where('name', $address->district)->first();
-            $sub_district = SubDistrict::where('name', $address->sub_district)->first();
-            $province = Province::where('name', $address->province)->first();
-            $postal_code = PostalCode::where('kodepos', $address->postal_code)->first();
+            $city = RajaOngkirCity::where('city_id', $address->city_id)->first();
+            $sub_district = RajaOngkirSubdistrict::where('subdistrict_id', $address->subdistrict_id)->first();
+
+            if(!$city){
+                $province_id = NULL;
+            }else{
+                $province_id = $address->province_id;
+            }
+            if(!$sub_district){
+                $sub_district_id = NULL;
+            }else{
+                $sub_district_id = $address->city_id;
+            }
 
             $data['locations'] = [
-                'cities' => City::where('province_id', $city->province_id)->get(),
-                'districts' => District::where('kota_id', $district->kota_id)->get(),
-                'provinces' => Province::get(),
-                'sub_districts' => SubDistrict::where('kecamatan_id', $sub_district->kecamatan_id)->get(),
-                'postal_codes' => PostalCode::where('kelurahan_id', $postal_code->kelurahan_id)->get(),
+                'provinces' => RajaOngkirProvince::orderBy('province_name', 'ASC')->get(),
+                'cities' => RajaOngkirCity::where('province_id', $province_id)->orderBy('city_name', 'ASC')->get(),
+                'sub_districts' => RajaOngkirSubdistrict::where('city_id', $sub_district_id)->orderBy('subdistrict_name', 'ASC')->get(),
+                'postal_codes' => $address->postal_code
             ];
 
         } else {
@@ -112,15 +124,9 @@ class AddressController extends Controller
                 'postal_codes' => [],
             ];
         }
-
-        // $province = Province::where('')
-        // $data['province'] = Province::get();
-
-        // dd($data);
-
-        $returnHTML = view('frontend.user.address.edit_address_modal', $data)->render();
-        return response()->json(array('data' => $data, 'html' => $returnHTML));
-//        return ;
+        
+        $returnHTML = view('frontend.partials.address_edit_modal', $data)->render();
+        return response()->json(array('data' => $data, 'html'=>$returnHTML));
     }
 
     /**
@@ -136,31 +142,16 @@ class AddressController extends Controller
 
         $address->address = $request->address;
         $address->country = $request->country;
-
-        $address->address = $request->address;
-        $address->country = $request->country;
-        if ($request->country == 'Indonesia') {
-            $address->city = City::where('id', $request->city)->first()->name;
-            $address->province = Province::where('id', $request->province)->first()->name;
-            $address->district = District::where('id', $request->district)->first()->name;
-            $address->sub_district = SubDistrict::where('id', $request->sub_district)->first()->name;
-            $address->postal_code = PostalCode::where('id', $request->postal_code)->first()->kodepos;
-        } else {
-            $address->city = $request->city;
-            $address->province = $request->province;
-            $address->sub_district = $request->sub_district;
-            $address->district = $request->district;
-            $address->postal_code = $request->postal_code;
-            $address->postal_code = $request->postal_code;
-        }
+        $address->city_id = $request->city;
+        $address->province_id = $request->province;
+        $address->subdistrict_id = $request->sub_district;
+        $address->postal_code = $request->postal_code;
 
         $address->detail = $request->detail;
-        $address->longitude = $request->longitude;
-        $address->latitude = $request->latitude;
         $address->phone = $request->phone;
         $address->save();
 
-        flash(translate('Address info updated successfully'))->warning();
+        flash(translate('Address info updated successfully'))->success();
         return back();
     }
 
@@ -173,7 +164,7 @@ class AddressController extends Controller
     public function destroy($id)
     {
         $address = Address::findOrFail($id);
-        if (!$address->set_default) {
+        if(!$address->set_default){
             $address->delete();
             return back();
         }
@@ -181,8 +172,29 @@ class AddressController extends Controller
         return back();
     }
 
-    public function set_default($id)
-    {
+    public function getStates(Request $request) {
+        $states = State::where('status', 1)->where('country_id', $request->country_id)->get();
+        $html = '<option value="">'.translate("Select State").'</option>';
+        
+        foreach ($states as $state) {
+            $html .= '<option value="' . $state->id . '">' . $state->name . '</option>';
+        }
+        
+        echo json_encode($html);
+    }
+    
+    public function getCities(Request $request) {
+        $cities = City::where('status', 1)->where('state_id', $request->state_id)->get();
+        $html = '<option value="">'.translate("Select City").'</option>';
+        
+        foreach ($cities as $row) {
+            $html .= '<option value="' . $row->id . '">' . $row->getTranslation('name') . '</option>';
+        }
+        
+        echo json_encode($html);
+    }
+
+    public function set_default($id){
         foreach (Auth::user()->addresses as $key => $address) {
             $address->set_default = 0;
             $address->save();
@@ -192,5 +204,25 @@ class AddressController extends Controller
         $address->save();
 
         return back();
+    }
+
+    public function getProvinces(Request $request) {
+        $items = IndonesiaProvince::get();
+        return response()->json($items);
+    }
+    
+    public function getCitiesNew(Request $request, $province_code = null) {
+        $items = IndonesiaCity::where('province_code', $province_code)->get();
+        return response()->json($items);
+    }
+
+    public function getDistricts(Request $request, $city_code = null) {
+        $items = IndonesiaDistrict::where('city_code', $city_code)->get();
+        return response()->json($items);
+    }
+
+    public function getSubdistricts(Request $request, $district_code = null) {
+        $items = IndonesiaVillage::where('district_code', $district_code)->get();
+        return response()->json($items);
     }
 }

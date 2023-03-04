@@ -1,9 +1,6 @@
 @extends('backend.layouts.app')
 
 @section('content')
-@php
-    $refund_request_addon = \App\Addon::where('unique_identifier', 'refund_request')->first();
-@endphp
 
 <div class="card">
     <form class="" action="" method="GET">
@@ -20,7 +17,7 @@
                 <div class="form-group mb-0">
                     <select class="form-control form-control-sm aiz-selectpicker mb-2 mb-md-0" id="seller_id" name="seller_id">
                         <option value="">{{ translate('All Sellers') }}</option>
-                        @foreach (App\Seller::all() as $key => $seller)
+                        @foreach (App\Models\Seller::all() as $key => $seller)
                             @if ($seller->user != null && $seller->user->shop != null)
                                 <option value="{{ $seller->user->id }}" @if ($seller->user->id == $seller_id) selected @endif>
                                     {{ $seller->user->shop->name }} ({{ $seller->user->name }})
@@ -56,82 +53,77 @@
                     <th data-breakpoints="lg">{{translate('Delivery Status')}}</th>
                     <th data-breakpoints="lg">{{translate('Payment Method')}}</th>
                     <th data-breakpoints="lg">{{translate('Payment Status')}}</th>
-                    @if ($refund_request_addon != null && $refund_request_addon->activated == 1)
+                    @if (addon_is_activated('refund_request'))
                         <th>{{translate('Refund')}}</th>
                     @endif
                     <th class="text-right" width="15%">{{translate('Options')}}</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($orders as $key => $order_id)
-                    @php
-                        $order = \App\Order::find($order_id->id);
-                    @endphp
-                    @if($order != null)
-                        <tr>
-                            <td>
-                                {{ ($key+1) + ($orders->currentPage() - 1)*$orders->perPage() }}
-                            </td>
-                            <td>
-                                {{ $order->code }}@if($order->viewed == 0) <span class="badge badge-inline badge-info">{{translate('New')}}</span>@endif
-                            </td>
-                            <td>
-                                {{ count($order->orderDetails->where('seller_id', '!=', $admin_user_id)) }}
-                            </td>
-                            <td>
-                                @if ($order->user != null)
-                                    {{ $order->user->name }}
-                                @else
-                                    Guest ({{ $order->guest_id }})
-                                @endif
-                            </td>
-                            <td>
-                                @if($order->seller)
-                                    {{ $order->seller->name }}
-                                @endif
-                            </td>
-                            <td>
-                                {{ single_price($order->grand_total) }}
-                            </td>
-                            <td>
-                                @php
-                                    $status = $order->delivery_status;
-                                @endphp
-                                {{ translate(ucfirst(str_replace('_', ' ', $status))) }}
-                            </td>
-                            <td>
-                                {{ translate(ucfirst(str_replace('_', ' ', $order->payment_type))) }}
-                            </td>
-                            <td>
-                                @if ($order->payment_status == 'paid')
-                                  <span class="badge badge-inline badge-success">{{translate('Paid')}}</span>
-                                @else
-                                  <span class="badge badge-inline badge-danger">{{translate('Unpaid')}}</span>
-                                @endif
-                            </td>
-                            @if ($refund_request_addon != null && $refund_request_addon->activated == 1)
-                                <td>
-                                    @if (count($order->refund_requests) > 0)
-                                        {{ count($order->refund_requests) }} {{ translate('Refund') }}
-                                    @else
-                                        {{ translate('No Refund') }}
-                                    @endif
-                                </td>
+                @foreach ($orders as $key => $order)
+                    <tr>
+                        <td>
+                            {{ ($key+1) + ($orders->currentPage() - 1)*$orders->perPage() }}
+                        </td>
+                        <td>
+                            {{ $order->code }}@if($order->viewed == 0) <span class="badge badge-inline badge-info">{{translate('New')}}</span>@endif
+                        </td>
+                        <td>
+                            {{ count($order->orderDetails->where('seller_id', '!=', $admin_user_id)) }}
+                        </td>
+                        <td>
+                            @if ($order->user != null)
+                                {{ $order->user->name }}
+                            @else
+                                Guest ({{ $order->guest_id }})
                             @endif
-
-                            <td class="text-right">
-                                <a class="btn btn-soft-primary btn-icon btn-circle btn-sm" href="{{route('seller_orders.show', encrypt($order->id))}}" title="{{ translate('View') }}">
-                                    <i class="las la-eye"></i>
-                                </a>
-                                <a class="btn btn-soft-primary btn-icon btn-circle btn-sm" href="{{ route('invoice.download', $order->id) }}" title="{{ translate('Download Invoice') }}">
-                                    <i class="las la-download"></i>
-                                </a>
-                                <a href="#" class="btn btn-soft-danger btn-icon btn-circle btn-sm confirm-delete" data-href="{{route('orders.destroy', $order->id)}}" title="{{ translate('Delete') }}">
-                                    <i class="las la-trash"></i>
-                                </a>
+                        </td>
+                        <td>
+                            @if($order->seller)
+                                {{ $order->seller->name }}
+                            @endif
+                        </td>
+                        <td>
+                            {{ single_price($order->grand_total) }}
+                        </td>
+                        <td>
+                            @php
+                                $status = $order->delivery_status;
+                            @endphp
+                            {{ translate(ucfirst(str_replace('_', ' ', $status))) }}
+                        </td>
+                        <td>
+                            {{ translate(ucfirst(str_replace('_', ' ', $order->payment_type))) }}
+                        </td>
+                        <td>
+                            @if ($order->payment_status == 'paid')
+                            <span class="badge badge-inline badge-success">{{translate('Paid')}}</span>
+                            @else
+                            <span class="badge badge-inline badge-danger">{{translate('Unpaid')}}</span>
+                            @endif
+                        </td>
+                        @if (addon_is_activated('refund_request'))
+                            <td>
+                                @if (count($order->refund_requests) > 0)
+                                    {{ count($order->refund_requests) }} {{ translate('Refund') }}
+                                @else
+                                    {{ translate('No Refund') }}
+                                @endif
                             </td>
-                        </tr>
-                    @endif
+                        @endif
+
+                        <td class="text-right">
+                            <a class="btn btn-soft-primary btn-icon btn-circle btn-sm" href="{{route('seller_orders.show', encrypt($order->id))}}" title="{{ translate('View') }}">
+                                <i class="las la-eye"></i>
+                            </a>
+                            <a class="btn btn-soft-info btn-icon btn-circle btn-sm" href="{{ route('invoice.download', $order->id) }}" title="{{ translate('Download Invoice') }}">
+                                <i class="las la-download"></i>
+                            </a>
+                            <a href="#" class="btn btn-soft-danger btn-icon btn-circle btn-sm confirm-delete" data-href="{{route('orders.destroy', $order->id)}}" title="{{ translate('Delete') }}">
+                                <i class="las la-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>

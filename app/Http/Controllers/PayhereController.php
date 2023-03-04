@@ -5,16 +5,16 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomerPackageController;
 use App\Http\Controllers\WalletController;
-use App\User;
-use App\Wallet;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use App\Utility\PayhereUtility;
 use Redirect;
-use App\Order;
-use App\BusinessSetting;
-use App\Seller;
+use App\Models\Order;
+use App\Models\BusinessSetting;
+use App\Models\Seller;
 use Session;
-use App\CustomerPackage;
+use App\Models\CustomerPackage;
 use App\Http\Controllers\CommissionController;
 use Auth;
 use Twilio\TwiML\Voice\Pay;
@@ -136,11 +136,11 @@ class PayhereController extends Controller
         return PayhereController::checkout_incomplete();
     }
 
-    public static function checkout_success($order_id,$responses)
+    public static function checkout_success($combined_order_id,$responses)
     {
         $payment_details = json_encode($responses);
         $checkoutController = new CheckoutController;
-        return $checkoutController->checkout_done($order_id, $payment_details);
+        return $checkoutController->checkout_done($combined_order_id, $payment_details);
     }
 
     public static function checkout_incomplete()

@@ -5,22 +5,10 @@
                 <span></span>
             </button>
         </div>
-        <div class="aiz-topbar-logo-wrap d-xl-none d-flex align-items-center justify-content-start">
-            @php
-                $logo = get_setting('header_logo');
-            @endphp
-            <a href="{{ route('admin.dashboard') }}" class="d-block">
-                @if($logo != null)
-                    <img src="{{ uploaded_asset($logo) }}" class="brand-icon" alt="{{ get_setting('website_name') }}">
-                @else
-                    <img src="{{ static_asset('assets/img/logo.png') }}" class="brand-icon" alt="{{ get_setting('website_name') }}">
-                @endif
-            </a>
-        </div>
     </div>
     <div class="d-flex justify-content-between align-items-stretch flex-grow-xl-1">
-        <div class="d-none d-md-flex justify-content-around align-items-center align-items-stretch">
-            <div class="d-none d-md-flex justify-content-around align-items-center align-items-stretch">
+        <div class="d-flex justify-content-around align-items-center align-items-stretch">
+            <div class="d-flex justify-content-around align-items-center align-items-stretch">
                 <div class="aiz-topbar-item">
                     <div class="d-flex align-items-center">
                         <a class="btn btn-icon btn-circle btn-light" href="{{ route('home')}}" target="_blank" title="{{ translate('Browse Website') }}">
@@ -29,8 +17,8 @@
                     </div>
                 </div>
             </div>
-            @if (\App\Addon::where('unique_identifier', 'pos_system')->first() != null && \App\Addon::where('unique_identifier', 'pos_system')->first()->activated)
-                <div class="d-none d-md-flex justify-content-around align-items-center align-items-stretch ml-3">
+            @if (addon_is_activated('pos_system'))
+                <div class="d-flex justify-content-around align-items-center align-items-stretch ml-3">
                     <div class="aiz-topbar-item">
                         <div class="d-flex align-items-center">
                             <a class="btn btn-icon btn-circle btn-light" href="{{ route('poin-of-sales.index') }}" target="_blank" title="{{ translate('POS') }}">
@@ -40,6 +28,16 @@
                     </div>
                 </div>
             @endif
+            <div class="d-flex justify-content-around align-items-center align-items-stretch ml-3">
+                <div class="aiz-topbar-item">
+                    <div class="d-flex align-items-center">
+                        <a class="btn btn-soft-danger btn-sm d-flex align-items-center" href="{{ route('cache.clear')}}">
+                            <i class="las la-hdd fs-20"></i>
+                            <span class="fw-500 ml-1 mr-0 d-none d-md-block">{{ translate('Clear Cache') }}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="d-flex justify-content-around align-items-center align-items-stretch">
 
@@ -86,7 +84,7 @@
                             </ul>
                         </div>
                         <div class="text-center border-top">
-                            <a href="{{ route('admin/all-notification') }}" class="text-reset d-block py-2">
+                            <a href="{{ route('admin.all-notification') }}" class="text-reset d-block py-2">
                                 {{translate('View All Notifications')}}
                             </a>
                         </div>
@@ -112,7 +110,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-right dropdown-menu-animated dropdown-menu-xs">
 
-                        @foreach (\App\Language::all() as $key => $language)
+                        @foreach (\App\Models\Language::all() as $key => $language)
                             <li>
                                 <a href="javascript:void(0)" data-flag="{{ $language->code }}" class="dropdown-item @if($locale == $language->code) active @endif">
                                     <img src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" class="mr-2">

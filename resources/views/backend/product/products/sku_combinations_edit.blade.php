@@ -17,7 +17,6 @@
             <td class="text-center" data-breakpoints="lg">
                 {{translate('Photo')}}
             </td>
-            <td></td>
         </tr>
     </thead>
     <tbody>
@@ -38,7 +37,7 @@
                     }
                     else {
                         if($colors_active == 1) {
-                            $color_name = \App\Color::where('code', $item)->first()->name;
+                            $color_name = \App\Models\Color::where('code', $item)->first()->name;
                             $str .= $color_name;
                             $sku .='-'.$color_name;
                         }
@@ -109,9 +108,6 @@
                                @endphp">
                     </div>
                     <div class="file-preview box sm"></div>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-icon btn-sm btn-danger" onclick="delete_variant(this)"><i class="las la-trash"></i></button>
                 </td>
             </tr>
             @endif

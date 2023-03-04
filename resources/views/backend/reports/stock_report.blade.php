@@ -8,53 +8,74 @@
 </div>
 
 <div class="row">
-    <div class="col-md-8 mx-auto">
+    <div class="col-md-12 mx-auto">
         <div class="card">
             <!--card body-->
             <div class="card-body">
                 <form action="{{ route('stock_report.index') }}" method="GET">
-                    <div class="form-group row offset-lg-2">
-                        <label class="col-md-3 col-form-label">{{translate('Sort by Category')}} :</label>
+                    <div class="form-group row">
+                        <label class="col-md-6 col-form-label">{{translate('Sort by Category')}} :</label>
                         <div class="col-md-5">
-                            <select id="demo-ease" class="from-control aiz-selectpicker" name="category_id" required>
-                                @foreach (\App\Category::all() as $key => $category)
+                            <select class="custom-select custom-select-sm filter-type" id="category_filter" name="category_filter" >
+                                <!-- <option disabled selected>Saring berdasarkan kategori</option> -->
+                                <option value="">Semua</option>
+                                @foreach (\App\Models\Category::all() as $key => $category)
                                     <option value="{{ $category->id }}">{{ $category->getTranslation('name') }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-primary" type="submit">{{ translate('Filter') }}</button>
+
+                        <div class="col-md-1">
+                            <a class="btn btn-success btn-sm" href="{{ route('stock_report.download') }}" target="_blank">
+                                <i class="la la-download"></i>
+                            </a>
                         </div>
                     </div>
                 </form>
-                <table class="table table-bordered aiz-table mb-0">
+                <table class="table table-bordered table-striped mb-0 products_datatable">
                     <thead>
                         <tr>
                             <th>{{ translate('Product Name') }}</th>
                             <th>{{ translate('Stock') }}</th>
+                            <th>{{ translate('Category') }}</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach ($products as $key => $product)
-                            @php
-                                $qty = 0;
-                                foreach ($product->stocks as $key => $stock) {
-                                    $qty += $stock->qty;
-                                }
-                            @endphp
-                            <tr>
-                                <td>{{ $product->getTranslation('name') }}</td>
-                                <td>{{ $qty }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                    <tbody></tbody>
                 </table>
-                <div class="aiz-pagination mt-4">
-                    {{ $products->links() }}
-                </div>
             </div>
         </div>
     </div>
 </div>
+
+@endsection
+
+@section('script')
+<script type="text/javascript">
+  $(document).ready(function() {
+    load_data();
+    function load_data(category_id = ''){
+        var table = $('.products_datatable').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                    url: "{{ route('stock_report.index') }}",
+                    data:{category_id: category_id}
+                },
+            columns: [
+                {data: 'name', name: 'name'},
+                {data: 'stock', name: 'stock'},
+                {data: 'category.name', name: 'category_id', orderable: false},
+            ]
+        });
+    }
+
+    $('#category_filter').change(function(){
+        var category_id = $('#category_filter').val();
+        $('#products_datatable').DataTable().destroy();
+        load_data(category_id);
+    });
+  });
+</script>
 
 @endsection

@@ -11,6 +11,12 @@
             <form class="form-horizontal" action="{{ route('addons.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="card-body">
+                    <!-- <div class="form-group row">
+                        <label class="col-sm-3 col-from-label" for="purchase_code">{{ translate('Purchase code')}}</label>
+                        <div class="col-sm-9">
+                            <input type="text" id="purchase_code" name="purchase_code" class="form-control" autocomplete="off" required>
+                        </div>
+                    </div> -->
                     <div class="form-group row">
                         <label class="col-sm-3 col-from-label" for="addon_zip">{{ translate('Zip File')}}</label>
                         <div class="col-sm-9">

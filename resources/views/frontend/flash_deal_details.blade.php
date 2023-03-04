@@ -21,9 +21,9 @@
                 <div class="row gutters-5 row-cols-xxl-6 row-cols-xl-5 row-cols-lg-4 row-cols-md-3 row-cols-2">
                     @foreach ($flash_deal->flash_deal_products as $key => $flash_deal_product)
                         @php
-                            $product = \App\Product::find($flash_deal_product->product_id);
+                            $product = \App\Models\Product::find($flash_deal_product->product_id);
                         @endphp
-                        @if ($product->published != 0)
+                        @if (isset($product) && $product->published != 0)
                             <div class="col mb-2">
                                 @include('frontend.partials.product_box_1',['product' => $product])
                             </div>

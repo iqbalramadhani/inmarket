@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\BusinessSetting;
+use App\Models\BusinessSetting;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Artisan;
@@ -12,20 +12,6 @@ class MarkupPriceSettingController extends Controller
     public function index()
     {
         $setting = BusinessSetting::where('type', 'markup_price')->first();
-        if(!$setting->value){
-            $setting->value = json_encode([
-                'enable' => false,
-                'type' => null,
-                'value' => null
-            ]);
-            $setting->save();
-        }
-
-        $settings = BusinessSetting::where('type', 'vendor_commission')->first();
-        if(!$settings->value){
-            $settings->value = null;
-            $settings->save();
-        }
         return view('backend.markup_price.index', ['setting' => $setting]);
     }
 

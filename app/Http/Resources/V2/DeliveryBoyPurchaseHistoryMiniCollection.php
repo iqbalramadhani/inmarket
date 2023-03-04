@@ -11,6 +11,21 @@ class DeliveryBoyPurchaseHistoryMiniCollection extends ResourceCollection
     {
         return [
             'data' => $this->collection->map(function($data) {
+                $delivery_pickup_latitude = 90.99;
+                $delivery_pickup_longitude = 180.99;
+                $store_location_available = false;
+                if($data->seller && $data->seller->delivery_pickup_latitude) {
+                    $store_location_available = true;
+                    $delivery_pickup_latitude = floatval($data->seller->delivery_pickup_latitude);
+                    $delivery_pickup_longitude = floatval($data->seller->delivery_pickup_longitude);
+                } if(!$data->seller) {
+                    $store_location_available = true;
+                    if(get_setting('delivery_pickup_latitude') && get_setting('delivery_pickup_longitude')) {
+                        $delivery_pickup_latitude = floatval(get_setting('delivery_pickup_latitude'));
+                        $delivery_pickup_longitude = floatval(get_setting('delivery_pickup_longitude'));
+                    }
+                    
+                }
                 $shipping_address = json_decode($data->shipping_address,true);
                 $location_available = false;
                 $lat = 90.99;
@@ -38,8 +53,11 @@ class DeliveryBoyPurchaseHistoryMiniCollection extends ResourceCollection
                     'location_available' => $location_available,
                     'lat' => $lat,
                     'lang' => $lang,
+                    'store_location_available' => $store_location_available,
+                    'delivery_pickup_latitude' => $delivery_pickup_latitude,
+                    'delivery_pickup_longitude' => $delivery_pickup_longitude,
                     'links' => [
-                        'details' => route('purchaseHistory.details', $data->id)
+                        'details' => ""
                     ]
                 ];
             })

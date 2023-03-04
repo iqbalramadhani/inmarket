@@ -2,13 +2,13 @@
 
 @if (isset($category_id))
     @php
-        $meta_title = \App\Category::find($category_id)->meta_title;
-        $meta_description = \App\Category::find($category_id)->meta_description;
+        $meta_title = \App\Models\Category::find($category_id)->meta_title;
+        $meta_description = \App\Models\Category::find($category_id)->meta_description;
     @endphp
 @elseif (isset($brand_id))
     @php
-        $meta_title = \App\Brand::find($brand_id)->meta_title;
-        $meta_description = \App\Brand::find($brand_id)->meta_description;
+        $meta_title = \App\Models\Brand::find($brand_id)->meta_title;
+        $meta_description = \App\Models\Brand::find($brand_id)->meta_description;
     @endphp
 @else
     @php
@@ -57,7 +57,7 @@
                                     <div class="p-3">
                                         <ul class="list-unstyled">
                                             @if (!isset($category_id))
-                                                @foreach (\App\Category::where('level', 0)->get() as $category)
+                                                @foreach (\App\Models\Category::where('level', 0)->get() as $category)
                                                     <li class="mb-2 ml-2">
                                                         <a class="text-reset fs-14" href="{{ route('products.category', $category->slug) }}">{{ $category->getTranslation('name') }}</a>
                                                     </li>
@@ -69,23 +69,23 @@
                                                         {{ translate('All Categories')}}
                                                     </a>
                                                 </li>
-                                                @if (\App\Category::find($category_id)->parent_id != 0)
+                                                @if (\App\Models\Category::find($category_id)->parent_id != 0)
                                                     <li class="mb-2">
-                                                        <a class="text-reset fs-14 fw-600" href="{{ route('products.category', \App\Category::find(\App\Category::find($category_id)->parent_id)->slug) }}">
+                                                        <a class="text-reset fs-14 fw-600" href="{{ route('products.category', \App\Models\Category::find(\App\Models\Category::find($category_id)->parent_id)->slug) }}">
                                                             <i class="las la-angle-left"></i>
-                                                            {{ \App\Category::find(\App\Category::find($category_id)->parent_id)->getTranslation('name') }}
+                                                            {{ \App\Models\Category::find(\App\Models\Category::find($category_id)->parent_id)->getTranslation('name') }}
                                                         </a>
                                                     </li>
                                                 @endif
                                                 <li class="mb-2">
-                                                    <a class="text-reset fs-14 fw-600" href="{{ route('products.category', \App\Category::find($category_id)->slug) }}">
+                                                    <a class="text-reset fs-14 fw-600" href="{{ route('products.category', \App\Models\Category::find($category_id)->slug) }}">
                                                         <i class="las la-angle-left"></i>
-                                                        {{ \App\Category::find($category_id)->getTranslation('name') }}
+                                                        {{ \App\Models\Category::find($category_id)->getTranslation('name') }}
                                                     </a>
                                                 </li>
                                                 @foreach (\App\Utility\CategoryUtility::get_immediate_children_ids($category_id) as $key => $id)
                                                     <li class="ml-4 mb-2">
-                                                        <a class="text-reset fs-14" href="{{ route('products.category', \App\Category::find($id)->slug) }}">{{ \App\Category::find($id)->getTranslation('name') }}</a>
+                                                        <a class="text-reset fs-14" href="{{ route('products.category', \App\Models\Category::find($id)->slug) }}">{{ \App\Models\Category::find($id)->getTranslation('name') }}</a>
                                                     </li>
                                                 @endforeach
                                             @endif
@@ -100,8 +100,8 @@
                                         <div class="aiz-range-slider">
                                             <div
                                                 id="input-slider-range"
-                                                data-range-value-min="@if(count(\App\Product::query()->get()) < 1) 0 @else {{ filter_products(\App\Product::query())->get()->min('unit_price') }} @endif"
-                                                data-range-value-max="@if(count(\App\Product::query()->get()) < 1) 0 @else {{ filter_products(\App\Product::query())->get()->max('unit_price') }} @endif"
+                                                data-range-value-min="@if(\App\Models\Product::count() < 1) 0 @else {{ \App\Models\Product::min('unit_price') }} @endif"
+                                                data-range-value-max="@if(\App\Models\Product::count() < 1) 0 @else {{ \App\Models\Product::max('unit_price') }} @endif"
                                             ></div>
 
                                             <div class="row mt-2">
@@ -133,30 +133,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="bg-white shadow-sm rounded mb-3">
-                                    <div class="fs-15 fw-600 p-3 border-bottom">
-                                        {{ translate('Filter by color')}}
-                                    </div>
-                                    <div class="p-3">
-                                        <div class="aiz-radio-inline">
-                                            @foreach ($all_colors as $key => $color)
-                                            <label class="aiz-megabox pl-0 mr-2" data-toggle="tooltip" data-title="{{ optional(\App\Color::where('code', $color)->first())->name }}">
-                                                <input
-                                                    type="radio"
-                                                    name="color"
-                                                    value="{{ $color }}"
-                                                    onchange="filter()"
-                                                    @if(isset($selected_color) && $selected_color == $color) checked @endif
-                                                >
-                                                <span class="aiz-megabox-elem rounded d-flex align-items-center justify-content-center p-1 mb-2">
-                                                    <span class="size-30px d-inline-block rounded" style="background: {{ $color }};"></span>
-                                                </span>
-                                            </label>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-
                                 @foreach ($attributes as $key => $attribute)
                                     @if (\App\Attribute::find($attribute['id']) != null)
                                         <div class="bg-white shadow-sm rounded mb-3">
@@ -198,6 +174,32 @@
                                     @endif
                                 @endforeach
 
+                                @if (get_setting('color_filter_activation'))
+                                    <div class="bg-white shadow-sm rounded mb-3">
+                                        <div class="fs-15 fw-600 p-3 border-bottom">
+                                            {{ translate('Filter by color')}}
+                                        </div>
+                                        <div class="p-3">
+                                            <div class="aiz-radio-inline">
+                                                @foreach ($colors as $key => $color)
+                                                <label class="aiz-megabox pl-0 mr-2" data-toggle="tooltip" data-title="{{ $color->name }}">
+                                                    <input
+                                                        type="radio"
+                                                        name="color"
+                                                        value="{{ $color->code }}"
+                                                        onchange="filter()"
+                                                        @if(isset($selected_color) && $selected_color == $color->code) checked @endif
+                                                    >
+                                                    <span class="aiz-megabox-elem rounded d-flex align-items-center justify-content-center p-1 mb-2">
+                                                        <span class="size-30px d-inline-block rounded" style="background: {{ $color->code }};"></span>
+                                                    </span>
+                                                </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 {{-- <button type="submit" class="btn btn-styled btn-block btn-base-4">Apply filter</button> --}}
                             </div>
                         </div>
@@ -210,7 +212,7 @@
                             </li>
                             @if(!isset($category_id))
                                 <li class="breadcrumb-item fw-600  text-dark">
-                                    <a class="text-reset" href="{{ route('search') }}">"{{ translate('All Categories')}}"</a>
+                                    <a class="text-reset" href="{{ route('search') }}">"{{ translate('All Products')}}"</a>
                                 </li>
                             @else
                                 <li class="breadcrumb-item opacity-50">
@@ -219,47 +221,39 @@
                             @endif
                             @if(isset($category_id))
                                 <li class="text-dark fw-600 breadcrumb-item">
-                                    <a class="text-reset" href="{{ route('products.category', \App\Category::find($category_id)->slug) }}">"{{ \App\Category::find($category_id)->getTranslation('name') }}"</a>
+                                    <a class="text-reset" href="{{ route('products.category', \App\Models\Category::find($category_id)->slug) }}">"{{ \App\Models\Category::find($category_id)->getTranslation('name') }}"</a>
                                 </li>
                             @endif
                         </ul>
 
                         <div class="text-left">
-                            <div class="d-flex align-items-center">
-                                <div>
+                            <div class="row gutters-5 flex-wrap align-items-center">
+                                <div class="col-lg col-10">
                                     <h1 class="h6 fw-600 text-body">
                                         @if(isset($category_id))
-                                            {{ \App\Category::find($category_id)->getTranslation('name') }}
+                                            {{ \App\Models\Category::find($category_id)->getTranslation('name') }}
                                         @elseif(isset($query))
                                             {{ translate('Search result for ') }}"{{ $query }}"
                                         @else
                                             {{ translate('All Products') }}
                                         @endif
                                     </h1>
-                                    <input type="hidden" name="q" value="{{ $query }}">
+                                    <input type="hidden" name="keyword" value="{{ $query }}">
                                 </div>
-                                <div class="form-group ml-auto mr-0 w-200px d-none d-xl-block">
-                                    <label class="mb-0 opacity-50">{{ translate('Brands')}}</label>
-                                    <select class="form-control form-control-sm aiz-selectpicker" data-live-search="true" name="brand" onchange="filter()">
-                                        <option value="">{{ translate('All Brands')}}</option>
-                                        @foreach (\App\Brand::all() as $brand)
-                                            <option value="{{ $brand->slug }}" @isset($brand_id) @if ($brand_id == $brand->id) selected @endif @endisset>{{ $brand->getTranslation('name') }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="col-2 col-lg-auto d-xl-none mb-lg-3 text-right">
+                                    <button type="button" class="btn btn-icon p-0" data-toggle="class-toggle" data-target=".aiz-filter-sidebar">
+                                        <i class="la la-filter la-2x"></i>
+                                    </button>
                                 </div>
-                                <div class="form-group w-200px ml-0 ml-xl-3">
+                                <div class="col-6 col-lg-auto mb-3 w-lg-200px">
                                     <label class="mb-0 opacity-50">{{ translate('Sort by')}}</label>
                                     <select class="form-control form-control-sm aiz-selectpicker" name="sort_by" onchange="filter()">
                                         <option value="newest" @isset($sort_by) @if ($sort_by == 'newest') selected @endif @endisset>{{ translate('Newest')}}</option>
                                         <option value="oldest" @isset($sort_by) @if ($sort_by == 'oldest') selected @endif @endisset>{{ translate('Oldest')}}</option>
+                                        <option value="best-selling" @isset($sort_by) @if ($sort_by == 'best-selling') selected @endif @endisset>{{ translate('Best Selling')}}</option>
                                         <option value="price-asc" @isset($sort_by) @if ($sort_by == 'price-asc') selected @endif @endisset>{{ translate('Price low to high')}}</option>
                                         <option value="price-desc" @isset($sort_by) @if ($sort_by == 'price-desc') selected @endif @endisset>{{ translate('Price high to low')}}</option>
                                     </select>
-                                </div>
-                                <div class="d-xl-none ml-auto ml-xl-3 mr-0 form-group align-self-end">
-                                    <button type="button" class="btn btn-icon p-0" data-toggle="class-toggle" data-target=".aiz-filter-sidebar">
-                                        <i class="la la-filter la-2x"></i>
-                                    </button>
                                 </div>
                             </div>
                         </div>

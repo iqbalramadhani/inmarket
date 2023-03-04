@@ -33,7 +33,7 @@
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
-                <h3 class="mb-0 h6 text-center">{{translate('Disable image optimization?')}}</h3>
+                <h3 class="mb-0 h6 text-center">{{translate('Disable image encoding?')}}</h3>
             </div>
             <div class="card-body text-center">
                 <label class="aiz-switch aiz-switch-success mb-0">
@@ -134,7 +134,7 @@
             <div class="card-body text-center">
                 <label class="aiz-switch aiz-switch-success mb-0">
                     <input type="checkbox" onchange="updateSettings(this, 'product_manage_by_admin')"
-                        <?php if(\App\BusinessSetting::where('type', 'product_manage_by_admin')->first() &&
+                        <?php if(\App\Models\BusinessSetting::where('type', 'product_manage_by_admin')->first() &&
                                 get_setting('product_manage_by_admin') == 1) echo "checked";?>>
                     <span class="slider round"></span>
                 </label>
@@ -152,28 +152,12 @@
             <div class="card-body text-center">
                 <label class="aiz-switch aiz-switch-success mb-0">
                     <input type="checkbox" onchange="updateSettings(this, 'product_approve_by_admin')"
-                        <?php if(\App\BusinessSetting::where('type', 'product_approve_by_admin')->first() &&
+                        <?php if(\App\Models\BusinessSetting::where('type', 'product_approve_by_admin')->first() &&
                                 get_setting('product_approve_by_admin') == 1) echo "checked";?>>
                     <span class="slider round"></span>
                 </label>
                 <div class="alert" style="color: #004085;background-color: #cce5ff;border-color: #b8daff;margin-bottom:0;margin-top:10px;">
                     {{ translate('After activate this option, Admin approval need to seller product')}}.
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="mb-0 h6 text-center">{{translate('Category-based Commission')}}</h3>
-            </div>
-            <div class="card-body text-center">
-                <label class="aiz-switch aiz-switch-success mb-0">
-                    <input type="checkbox" onchange="updateSettings(this, 'category_wise_commission')" <?php if(get_setting('category_wise_commission') == 1) echo "checked";?>>
-                    <span class="slider round"></span>
-                </label>
-                <div class="alert" style="color: #004085;background-color: #cce5ff;border-color: #b8daff;margin-bottom:0;margin-top:10px;">
-                    {{ translate('After activate this option Seller commision will be disabled and You need to set commission on each category otherwise Admin will not get any commision')}}. <a href="{{ route('categories.index') }}">{{ translate('Set Commisssion Now')}}</a>
                 </div>
             </div>
         </div>
@@ -194,6 +178,36 @@
             </div>
         </div>
     </div>
+    @if(addon_is_activated('wholesale'))
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0 h6 text-center">{{translate('Wholesale Product for Seller')}}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <label class="aiz-switch aiz-switch-success mb-0">
+                        <input type="checkbox" onchange="updateSettings(this, 'seller_wholesale_product')" <?php if(get_setting('seller_wholesale_product') == 1) echo "checked";?>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    @endif
+    @if(addon_is_activated('auction'))
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0 h6 text-center">{{translate('Auction Product for Seller')}}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <label class="aiz-switch aiz-switch-success mb-0">
+                        <input type="checkbox" onchange="updateSettings(this, 'seller_auction_product')" <?php if(get_setting('seller_auction_product') == 1) echo "checked";?>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 
 <h4 class="text-center text-muted mt-4">{{translate('Payment Related')}}</h4>
@@ -255,6 +269,8 @@
             </div>
         </div>
     </div>
+</div>   
+<div class="row">
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
@@ -274,8 +290,8 @@
             </div>
         </div>
     </div>
-</div>
-<div class="row">
+
+
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
@@ -314,7 +330,8 @@
             </div>
         </div>
     </div>
-
+</div>
+<div class="row">
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
@@ -334,8 +351,8 @@
             </div>
         </div>
     </div>
-</div>
-<div class="row">
+
+
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
@@ -374,7 +391,8 @@
             </div>
         </div>
     </div>
-
+</div>
+<div class="row">
     <div class="col-lg-4">
         <div class="card">
             <div class="card-header">
@@ -490,6 +508,66 @@
                 </div>
                 <div class="alert" style="color: #004085;background-color: #cce5ff;border-color: #b8daff;margin-bottom:0;margin-top:10px;">
                     {{ translate('You need to configure amarpay correctly to enable this feature') }}. <a href="{{ route('payment_method.index') }}">{{ translate('Configure Now') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0 h6 text-center">{{translate('Authorize Net Activation')}}</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="clearfix">
+                    <img class="float-left" src="{{ static_asset('assets/img/cards/authorizenet.png') }}" height="30">
+                    <label class="aiz-switch aiz-switch-success mb-0 float-right">
+                        <input type="checkbox" onchange="updateSettings(this, 'authorizenet')" <?php if(get_setting('authorizenet') == 1) echo "checked";?>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="alert" style="color: #004085;background-color: #cce5ff;border-color: #b8daff;margin-bottom:0;margin-top:10px;">
+                    {{ translate('You need to configure authorize net correctly to enable this feature') }}. <a href="{{ route('payment_method.index') }}">{{ translate('Configure Now') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0 h6 text-center">{{translate('Payku Activation')}}</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="clearfix">
+                    <img class="float-left" src="{{ static_asset('assets/img/cards/payku.png') }}" height="30">
+                    <label class="aiz-switch aiz-switch-success mb-0 float-right">
+                        <input type="checkbox" onchange="updateSettings(this, 'payku')" <?php if(get_setting('payku') == 1) echo "checked";?>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="alert" style="color: #004085;background-color: #cce5ff;border-color: #b8daff;margin-bottom:0;margin-top:10px;">
+                    {{ translate('You need to configure payku net correctly to enable this feature') }}. <a href="{{ route('payment_method.index') }}">{{ translate('Configure Now') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0 h6 text-center">{{translate('Mercadopago Payment Activation')}}</h3>
+            </div>
+            <div class="card-body text-center">
+                <div class="clearfix">
+                    <img   class="float-left" src="{{ static_asset('assets/img/cards/mercadopago.png') }}" height="30">
+                    <label class="aiz-switch aiz-switch-success mb-0 float-right">
+                        <input type="checkbox" onchange="updateSettings(this, 'mercadopago_payment')" <?php if(get_setting('mercadopago_payment') == 1) echo "checked";?>>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="alert" style="color: #004085;background-color: #cce5ff;border-color: #b8daff;margin-bottom:0;margin-top:10px;">
+                    You need to configure Mercadopago correctly to enable this feature. <a href="{{ route('payment_method.index') }}">Configure Now</a>
                 </div>
             </div>
         </div>

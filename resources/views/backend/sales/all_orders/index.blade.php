@@ -1,16 +1,14 @@
 @extends('backend.layouts.app')
 
 @section('content')
-@php
-    $refund_request_addon = \App\Addon::where('unique_identifier', 'refund_request')->first();
-@endphp
+
 <div class="card">
     <form class="" action="" id="sort_orders" method="GET">
         <div class="card-header row gutters-5">
             <div class="col">
                 <h5 class="mb-md-0 h6">{{ translate('All Orders') }}</h5>
             </div>
-            
+
             <div class="dropdown mb-2 mb-md-0">
                 <button class="btn border dropdown-toggle" type="button" data-toggle="dropdown">
                     {{translate('Bulk Action')}}
@@ -23,7 +21,7 @@
                     </a>-->
                 </div>
             </div>
-            
+
             <!-- Change Status Modal -->
             <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
@@ -53,9 +51,10 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-lg-2 ml-auto">
                 <select class="form-control aiz-selectpicker" name="delivery_status" id="delivery_status">
+                    <option value="">{{translate('Filter by Delivery Status')}}</option>
                     <option value="pending" @if ($delivery_status == 'pending') selected @endif>{{translate('Pending')}}</option>
                     <option value="confirmed" @if ($delivery_status == 'confirmed') selected @endif>{{translate('Confirmed')}}</option>
                     <option value="picked_up" @if ($delivery_status == 'picked_up') selected @endif>{{translate('Picked Up')}}</option>
@@ -80,7 +79,7 @@
                 </div>
             </div>
         </div>
-    
+
         <div class="card-body">
             <table class="table aiz-table mb-0">
                 <thead>
@@ -102,7 +101,7 @@
                         <th data-breakpoints="md">{{ translate('Amount') }}</th>
                         <th data-breakpoints="md">{{ translate('Delivery Status') }}</th>
                         <th data-breakpoints="md">{{ translate('Payment Status') }}</th>
-                        @if ($refund_request_addon != null && $refund_request_addon->activated == 1)
+                        @if (addon_is_activated('refund_request'))
                         <th>{{ translate('Refund') }}</th>
                         @endif
                         <th class="text-right" width="15%">{{translate('options')}}</th>
@@ -138,21 +137,17 @@
                             @endif
                         </td>
                         <td>
-                            {{ single_price($order->grand_total) }}
+                            {{ format_price($order->grand_total) }}
                         </td>
                         <td>
-                            @if($order->complain()->get()->isNotEmpty() && $order->complain()->first()->status!= 'completed')
-                                <span class="badge badge-inline badge-danger font-weight-bold"> {{ translate('Complained') }}</span>
-                            @else
-                                @php
-                                    $status = $order->delivery_status;
-                                    if($order->delivery_status == 'cancelled') {
-                                        $status = '<span class="badge badge-inline badge-danger">'.translate('Cancel').'</span>';
-                                    }
-                                @endphp
-                                
-                                {!! $status !!}
-                            @endif
+                            @php
+                                $status = $order->delivery_status;
+                                if($order->delivery_status == 'cancelled') {
+                                    $status = '<span class="badge badge-inline badge-danger">'.translate('Cancel').'</span>';
+                                }
+
+                            @endphp
+                            {!! $status !!}
                         </td>
                         <td>
                             @if ($order->payment_status == 'paid')
@@ -161,7 +156,7 @@
                             <span class="badge badge-inline badge-danger">{{translate('Unpaid')}}</span>
                             @endif
                         </td>
-                        @if ($refund_request_addon != null && $refund_request_addon->activated == 1)
+                        @if (addon_is_activated('refund_request'))
                         <td>
                             @if (count($order->refund_requests) > 0)
                             {{ count($order->refund_requests) }} {{ translate('Refund') }}
@@ -174,7 +169,7 @@
                             <a class="btn btn-soft-primary btn-icon btn-circle btn-sm" href="{{route('all_orders.show', encrypt($order->id))}}" title="{{ translate('View') }}">
                                 <i class="las la-eye"></i>
                             </a>
-                            <a class="btn btn-soft-primary btn-icon btn-circle btn-sm" href="{{ route('invoice.download', $order->id) }}" title="{{ translate('Download Invoice') }}">
+                            <a class="btn btn-soft-info btn-icon btn-circle btn-sm" href="{{ route('invoice.download', $order->id) }}" title="{{ translate('Download Invoice') }}">
                                 <i class="las la-download"></i>
                             </a>
                             <a href="#" class="btn btn-soft-danger btn-icon btn-circle btn-sm confirm-delete" data-href="{{route('orders.destroy', $order->id)}}" title="{{ translate('Delete') }}">
@@ -206,16 +201,16 @@
             if(this.checked) {
                 // Iterate each checkbox
                 $('.check-one:checkbox').each(function() {
-                    this.checked = true;                        
+                    this.checked = true;
                 });
             } else {
                 $('.check-one:checkbox').each(function() {
-                    this.checked = false;                       
+                    this.checked = false;
                 });
             }
-          
+
         });
-        
+
 //        function change_status() {
 //            var data = new FormData($('#order_form')[0]);
 //            $.ajax({
@@ -235,7 +230,7 @@
 //                }
 //            });
 //        }
-        
+
         function bulk_delete() {
             var data = new FormData($('#sort_orders')[0]);
             $.ajax({

@@ -56,8 +56,7 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="aiz-megabox d-block bg-white mb-0">
                                             <input type="radio" name="address_id" value="{{ $address->id }}" @if ($address->set_default)
-                                                checked
-                                            @endif required>
+                                                checked @elseif ($key==0) checked  @endif required>
                                             <span class="d-flex p-3 aiz-megabox-elem">
                                                 <span class="aiz-rounded-check flex-shrink-0 mt-1"></span>
                                                 <span class="flex-grow-1 pl-3 text-left">
@@ -71,7 +70,7 @@
                                                     </div>
                                                     <div>
                                                         <span class="opacity-60">{{ translate('City') }}:</span>
-                                                        <span class="fw-600 ml-2">{{ $address->city }}</span>
+                                                        <span class="fw-600 ml-2">{{ $address->rajaongkir_city->city_name }}</span>
                                                     </div>
                                                     <div>
                                                         <span class="opacity-60">{{ translate('Country') }}:</span>
@@ -127,7 +126,7 @@
                                         <div class="form-group">
                                             <label class="control-label">{{ translate('Select your country')}}</label>
                                             <select class="form-control aiz-selectpicker" data-live-search="true" name="country">
-                                                @foreach (\App\Country::where('status', 1)->get() as $key => $country)
+                                                @foreach (\App\Models\Country::where('status', 1)->get() as $key => $country)
                                                     <option value="{{ $country->name }}">{{ $country->name }}</option>
                                                 @endforeach
                                             </select>
@@ -138,7 +137,7 @@
 
                                             <label class="control-label">{{ translate('City')}}</label>
                                             <select class="form-control aiz-selectpicker" data-live-search="true" name="city" required>
-                                                @foreach (\App\City::get() as $key => $city)
+                                                @foreach (\App\Models\City::get() as $key => $city)
                                                     <option value="{{ $city->name }}">{{ $city->getTranslation('name') }}</option>
                                                 @endforeach
                                             </select>
@@ -208,7 +207,7 @@
                                 <div class="mb-3">
                                     <select class="form-control aiz-selectpicker" data-live-search="true" data-placeholder="{{translate('Select your country')}}" name="country" required>
                                         <option value="">Select Country</option>
-                                        @foreach (\App\Country::where('status', 1)->get() as $key => $country)
+                                        @foreach (\App\Models\Country::where('status', 1)->get() as $key => $country)
                                             <option value="{{ $country->name }}" @if($country->code === 'ID') selected @endif>{{ $country->name }}</option>
                                         @endforeach
                                     </select>

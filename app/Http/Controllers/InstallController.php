@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use URL;
 use DB;
 use Hash;
-use App\BusinessSetting;
-use App\User;
-use App\Product;
+use App\Models\BusinessSetting;
+use App\Models\User;
+use App\Models\Product;
 use CoreComponentRepository;
 
 class InstallController extends Controller

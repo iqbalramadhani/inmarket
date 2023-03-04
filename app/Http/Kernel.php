@@ -7,7 +7,9 @@ use App\Http\Middleware\IsSeller;
 use App\Http\Middleware\IsUser;
 use App\Http\Middleware\CheckoutMiddleware;
 use App\Http\Middleware\IsUnbanned;
+use App\Http\Middleware\AppLanguage;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
+
 
 class Kernel extends HttpKernel
 {
@@ -45,8 +47,9 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            'throttle:100,1',
-            'bindings',
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            'throttle:api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
 
@@ -58,6 +61,7 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $routeMiddleware = [
+        'app_language' => AppLanguage::class,
         'admin' => IsAdmin::class,
         'seller' => IsSeller::class,
         'user' => IsUser::class,

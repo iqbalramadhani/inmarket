@@ -29,7 +29,7 @@
                     <label class="col-lg-3 col-from-label">{{translate('Category')}} <span class="text-danger">*</span></label>
                     <div class="col-lg-9">
                         <select class="form-control aiz-selectpicker" name="category_id" id="category_id" required>
-                            @foreach(\App\Category::where('parent_id', 0)->where('digital', 1)->with('childrenCategories')->get(); as $category)
+                            @foreach(\App\Models\Category::where('parent_id', 0)->where('digital', 1)->with('childrenCategories')->get(); as $category)
                                 <option value="{{ $category->id }}">{{ $category->getTranslation('name') }}</option>
                                 @foreach ($category->childrenCategories as $childCategory)
                                     @include('categories.child_category', ['child_category' => $childCategory])
@@ -150,7 +150,7 @@
                         <input type="number" lang="en" min="0" value="0" step="0.01" placeholder="{{translate('Purchase price')}}" name="purchase_price" class="form-control" required>
                     </div>
                 </div>
-                <div class="form-group row">
+                <!-- <div class="form-group row">
                     <label class="col-lg-3 col-from-label">{{translate('Tax')}} <span class="text-danger">*</span></label>
                     <div class="col-lg-6">
                         <input type="number" lang="en" min="0" value="0" step="0.01" placeholder="{{translate('Tax')}}" name="tax" class="form-control" required>
@@ -161,7 +161,7 @@
                             <option value="percent">{{translate('Percent')}}</option>
                         </select>
                     </div>
-                </div>
+                </div> -->
                 <div class="form-group row">
                     <label class="col-lg-3 col-from-label">{{translate('Discount')}} <span class="text-danger">*</span></label>
                     <div class="col-lg-6">

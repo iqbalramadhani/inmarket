@@ -27,7 +27,7 @@
                                     </td>
                                     <td>{{ date('d-m-Y', $order->date) }}</td>
                                     <td>
-                                        {{ single_price($order->grand_total) }}
+                                        {{ format_price($order->grand_total) }}
                                     </td>
                                     <td>
                                         @if($order->complain()->get()->isNotEmpty() && $order->complain()->first()->status!= 'completed')
@@ -38,7 +38,7 @@
                                             @endphp
                                             {{ translate(ucfirst(str_replace('_', ' ', $status))) }}
                                         @endif
-                                        
+
                                         @if($order->delivery_viewed == 0)
                                             <span class="ml-2" style="color:green"><strong>*</strong></span>
                                         @endif
@@ -77,11 +77,6 @@
             </div>
         @endif
     </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
-
-    </div>
 @endsection
 
 @section('modal')
@@ -110,11 +105,10 @@
 
 @endsection
 
-
 @section('script')
     <script type="text/javascript">
         $('#order_details').on('hidden.bs.modal', function () {
-            // location.reload();
+            location.reload();
         })
     </script>
 

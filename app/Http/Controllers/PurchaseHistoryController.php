@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\RajaOngkirService;
 use Illuminate\Http\Request;
-use App\Order;
-use App\OrderDetail;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use Auth;
 use DB;
 
@@ -39,29 +38,11 @@ class PurchaseHistoryController extends Controller
     public function purchase_history_details(Request $request)
     {
         $order = Order::findOrFail($request->order_id);
-
-        if($order->complain()->get()->isNotEmpty()) {
-            $order->complained_customer_viewed = 1;
-        }
         $order->delivery_viewed = 1;
         $order->payment_status_viewed = 1;
         $order->save();
-
-        if($order->resi_number){
-            $rajaOngkir = new RajaOngkirService();
-            $result = $rajaOngkir->track($order->resi_number, $order->resi_courier);
-            if($result['rajaongkir']['status']['code'] === 200){
-                if($result['rajaongkir']['result']['delivered']){
-                    $order->delivery_status = 'delivered';
-                    $order->save();
-                    OrderDetail::where('order_id', $order->id)->update([
-                        'delivery_status' => 'delivered'
-                    ]);
-                }
-            }
-        }
-
-        return view('frontend.user.order_details_customer', compact('order'));
+        $oy_trx_id = $order->oy_payment()->first()->trx_id ?? null;
+        return view('frontend.user.order_details_customer', compact('order', 'oy_trx_id'));
     }
 
     /**

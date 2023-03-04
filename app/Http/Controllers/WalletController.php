@@ -5,14 +5,13 @@ namespace App\Http\Controllers;
 use App\Utility\PayfastUtility;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PaypalController;
-use App\Http\Controllers\OYIndonesiaController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\PublicSslCommerzPaymentController;
 use App\Http\Controllers\InstamojoController;
 use App\Http\Controllers\PaytmController;
 use Auth;
 use Session;
-use App\Wallet;
+use App\Models\Wallet;
 use App\Models\UserBankAccount;
 use App\Utility\PayhereUtility;
 
@@ -39,25 +38,19 @@ class WalletController extends Controller
 
         $request->session()->put('payment_type', 'wallet_payment');
         $request->session()->put('payment_data', $data);
-        
-        if ($request->payment_option == 'oyid_va') {
-            $oyid = new OYIndonesiaController;
-            return $oyid->createPayment($request->payment_option, "CREDIT_CARD, QRIS, EWALLET");
-        } else if ($request->payment_option == 'oyid_card') {
-            $oyid = new OYIndonesiaController;
-            return $oyid->createPayment($request->payment_option, "VA, QRIS, EWALLET");
-        } else if ($request->payment_option == 'oyid_wallet') {
-            $oyid = new OYIndonesiaController;
-            return $oyid->createPayment($request->payment_option, "VA, QRIS, CREDIT_CARD");
-        } else if ($request->payment_option == 'oyid_qris') {
-            $oyid = new OYIndonesiaController;
-            return $oyid->createPayment($request->payment_option, "VA, EWALLET, CREDIT_CARD");
-        } elseif ($request->payment_option == 'paypal') {
+
+        if ($request->payment_option == 'paypal') {
             $paypal = new PaypalController;
             return $paypal->getCheckout();
         } elseif ($request->payment_option == 'stripe') {
             $stripe = new StripePaymentController;
             return $stripe->stripe();
+        } elseif ($request->payment_option == 'mercadopago') {
+            $mercadopago = new MercadopagoController;
+            return $mercadopago->paybill();
+        } elseif ($request->payment_option == 'toyyibpay') {
+            $toyyibpay = new ToyyibpayController;
+            return $toyyibpay->createbill();
         } elseif ($request->payment_option == 'sslcommerz') {
             $sslcommerz = new PublicSslCommerzPaymentController;
             return $sslcommerz->index($request);
@@ -70,9 +63,6 @@ class WalletController extends Controller
         } elseif ($request->payment_option == 'paystack') {
             $paystack = new PaystackController;
             return $paystack->redirectToGateway($request);
-        } elseif ($request->payment_option == 'proxypay') {
-            $proxy = new ProxypayController;
-            return $proxy->create_reference($request);
         } elseif ($request->payment_option == 'voguepay') {
             $voguepay = new VoguePayController;
             return $voguepay->customer_showForm();
@@ -116,6 +106,11 @@ class WalletController extends Controller
         } elseif ($request->payment_option == 'paytm') {
             $paytm = new PaytmController;
             return $paytm->index();
+        } else if ($request->payment_option == 'authorizenet') {
+            $authorize_net = new AuthorizeNetController();
+            return $authorize_net->pay();
+        } elseif ($request->payment_option == 'payku') {
+            return (new PaykuController)->create($request);
         }
     }
 
@@ -165,25 +160,6 @@ class WalletController extends Controller
         $wallet = Wallet::findOrFail($request->id);
         $wallet->approval = $request->status;
         if ($request->status == 1) {
-            $user = $wallet->user;
-            $user->balance = $user->balance + $wallet->amount;
-            $user->save();
-        } else {
-            $user = $wallet->user;
-            $user->balance = $user->balance - $wallet->amount;
-            $user->save();
-        }
-        if ($wallet->save()) {
-            return 1;
-        }
-        return 0;
-    }
-    
-    public function updateApprovedbyStatus($id)
-    {
-        $wallet = Wallet::findOrFail($request->id);
-
-        if ($wallet->oy_id->status == 'COMPLETE') {
             $user = $wallet->user;
             $user->balance = $user->balance + $wallet->amount;
             $user->save();

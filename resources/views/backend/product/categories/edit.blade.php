@@ -11,7 +11,7 @@
         <div class="card">
             <div class="card-body p-0">
                 <ul class="nav nav-tabs nav-fill border-light">
-                    @foreach (\App\Language::all() as $key => $language)
+                    @foreach (\App\Models\Language::all() as $key => $language)
                     <li class="nav-item">
                         <a class="nav-link text-reset @if ($language->code == $lang) active @else bg-soft-dark border-light border-left-0 @endif py-3" href="{{ route('categories.edit', ['id'=>$category->id, 'lang'=> $language->code] ) }}">
                             <img src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" height="11" class="mr-1">
@@ -46,7 +46,7 @@
                     </div>
                     <div class="form-group row">
                         <label class="col-md-3 col-form-label">
-                            {{translate('Ordering Number')}} 
+                            {{translate('Ordering Number')}}
                         </label>
                         <div class="col-md-9">
                             <input type="number" name="order_level" value="{{ $category->order_level }}" class="form-control" id="order_level" placeholder="{{translate('Order Level')}}">
@@ -62,7 +62,7 @@
                             </select>
                         </div>
                     </div>
-    	              <div class="form-group row">
+    	            <div class="form-group row">
                         <label class="col-md-3 col-form-label" for="signinSrEmail">{{translate('Banner')}} <small>({{ translate('200x200') }})</small></label>
                         <div class="col-md-9">
                             <div class="input-group" data-toggle="aizuploader" data-type="image">
@@ -119,6 +119,16 @@
                             </div>
                         </div>
                     @endif
+                    <div class="form-group row">
+                        <label class="col-md-3 col-form-label">{{translate('Filtering Attributes')}}</label>
+                        <div class="col-md-9">
+                            <select class="select2 form-control aiz-selectpicker" name="filtering_attributes[]" data-toggle="select2" data-placeholder="Choose ..."data-live-search="true" data-selected="{{ $category->attributes->pluck('id') }}" multiple>
+                                @foreach (\App\Models\Attribute::all() as $attribute)
+                                    <option value="{{ $attribute->id }}">{{ $attribute->getTranslation('name') }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-group mb-0 text-right">
                         <button type="submit" class="btn btn-primary">{{translate('Save')}}</button>
                     </div>

@@ -27,7 +27,7 @@
                         @if ($orderDetail->product != null && $orderDetail->product->auction_product == 0)
                             <a href="{{ route('product', $orderDetail->product->slug) }}" target="_blank">{{ $orderDetail->product->getTranslation('name') }}</a>
                         @elseif($orderDetail->product != null && $orderDetail->product->auction_product == 1)
-                            <a href="{{ route('auction-product', $orderDetail->product->slug) }}" target="_blank">{{ $orderDetail->product->getTranslation('name') }}</a>
+                            <a href="#" target="_blank">{{ $orderDetail->product->getTranslation('name') }}</a>
                         @else
                             <strong>{{  translate('Product Unavailable') }}</strong>
                         @endif

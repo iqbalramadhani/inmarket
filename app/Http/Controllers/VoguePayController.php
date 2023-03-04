@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Session;
-use App\BusinessSetting;
-use App\Seller;
+use App\Models\BusinessSetting;
+use App\Models\Seller;
 
 class VoguePayController extends Controller
 {
@@ -41,7 +41,7 @@ class VoguePayController extends Controller
             if(Session::has('payment_type')){
                 if(Session::get('payment_type') == 'cart_payment'){
                     $checkoutController = new CheckoutController;
-                    return $checkoutController->checkout_done(Session::get('order_id'), $payment_detalis);
+                    return $checkoutController->checkout_done(Session::get('combined_order_id'), $payment_detalis);
                 }
                 elseif (Session::get('payment_type') == 'wallet_payment') {
                     $walletController = new WalletController;

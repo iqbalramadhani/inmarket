@@ -53,8 +53,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::post('/sellers/payment_modal', 'SellerController@payment_modal')->name('sellers.payment_modal');
     Route::get('/seller/payments', 'PaymentController@payment_histories')->name('sellers.payment_histories');
     Route::get('/seller/payments/show/{id}', 'PaymentController@show')->name('sellers.payment_history');
-    Route::get('/seller/download', 'SellerController@download')->name('sellers.download');
-
 
     Route::resource('customers', 'CustomerController');
     Route::get('customers_ban/{customer}', 'CustomerController@ban')->name('customers.ban');
@@ -120,6 +118,12 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::get('/languages/destroy/{id}', 'LanguageController@destroy')->name('languages.destroy');
     Route::post('/languages/update_rtl_status', 'LanguageController@update_rtl_status')->name('languages.update_rtl_status');
     Route::post('/languages/key_value_store', 'LanguageController@key_value_store')->name('languages.key_value_store');
+
+    //App Trasnlation
+    Route::post('/languages/app-translations/import', 'LanguageController@importEnglishFile')->name('app-translations.import');
+    Route::get('/languages/app-translations/show/{id}', 'LanguageController@showAppTranlsationView')->name('app-translations.show');
+    Route::post('/languages/app-translations/key_value_store', 'LanguageController@storeAppTranlsation')->name('app-translations.store');
+    Route::get('/languages/app-translations/export/{id}', 'LanguageController@exportARBFile')->name('app-translations.export');
 
     // website setting
     Route::group(['prefix' => 'website'], function() {
@@ -188,6 +192,16 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::get('/wish_report', 'ReportController@wish_report')->name('wish_report.index');
     Route::get('/user_search_report', 'ReportController@user_search_report')->name('user_search_report.index');
     Route::get('/wallet-history', 'ReportController@wallet_transaction_history')->name('wallet-history.index');
+    Route::get('/download_seller_sale_report', 'ReportDownloadController@download_seller_sale_report')->name('seller_sale_report.download');
+    Route::get('/download_stock_report', 'ReportDownloadController@download_stock_report')->name('stock_report.download');
+    Route::get('/download_wish_report', 'ReportDownloadController@download_wish_report')->name('wish_report.download');
+    Route::get('/download_user_search_report', 'ReportDownloadController@download_user_search_report')->name('user_search_report.download');
+    Route::get('/download_in_house_sale_report', 'ReportDownloadController@download_in_house_sale_report')->name('in_house_sale_report.download');
+    Route::get('/download-wallet-history', 'ReportDownloadController@download_wallet_transaction_history')->name('wallet-history.download');
+    Route::get('/download-commission-log', 'ReportDownloadController@download_commission_history')->name('commission-log.download');
+
+    Route::get('/buyer_province', 'ReportController@buyer_province')->name('buyer_province.index');
+    Route::get('/seller_count', 'ReportController@seller_count')->name('seller_count.index');
 
     //Blog Section
     Route::resource('blog-category', 'BlogCategoryController');
@@ -198,8 +212,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
 
     //Coupons
     Route::resource('coupon', 'CouponController');
-    Route::post('/coupon/get_form', 'CouponController@get_coupon_form')->name('coupon.get_coupon_form');
-    Route::post('/coupon/get_form_edit', 'CouponController@get_coupon_form_edit')->name('coupon.get_coupon_form_edit');
     Route::get('/coupon/destroy/{id}', 'CouponController@destroy')->name('coupon.destroy');
 
     //Reviews
@@ -242,6 +254,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
 
     Route::resource('addons', 'AddonController');
     Route::post('/addons/activation', 'AddonController@activation')->name('addons.activation');
+    Route::get('/addon/delete_plugin/{id}', 'AddonController@delete_addon')->name('addons.delete');
+    Route::get('/addon/changes-log/{id}', 'AddonController@detail_log_addons')->name('addons.logs');
 
     Route::get('/customer-bulk-upload/index', 'CustomerBulkUploadController@index')->name('customer_bulk_upload.index');
     Route::post('/bulk-user-upload', 'CustomerBulkUploadController@user_bulk_upload')->name('bulk_user_upload');
@@ -267,9 +281,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::resource('countries', 'CountryController');
     Route::post('/countries/status', 'CountryController@updateStatus')->name('countries.status');
 
+    Route::resource('states','StateController');
+	Route::post('/states/status', 'StateController@updateStatus')->name('states.status');
+
     Route::resource('cities', 'CityController');
     Route::get('/cities/edit/{id}', 'CityController@edit')->name('cities.edit');
     Route::get('/cities/destroy/{id}', 'CityController@destroy')->name('cities.destroy');
+    Route::post('/cities/status', 'CityController@updateStatus')->name('cities.status');
 
     Route::view('/system/update', 'backend.system.update')->name('system_update');
     Route::view('/system/server-status', 'backend.system.server_status')->name('system_server');
@@ -279,12 +297,17 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function(
     Route::resource('/uploaded-files', 'AizUploadController');
     Route::get('/uploaded-files/destroy/{id}', 'AizUploadController@destroy')->name('uploaded-files.destroy');
 
-    Route::get('/all-notification', 'NotificationController@index')->name('admin/all-notification');
+    Route::get('/all-notification', 'NotificationController@index')->name('admin.all-notification');
 
+    Route::get('/cache-cache', 'AdminController@clearCache')->name('cache.clear');
+
+    // markup price
     Route::get('markup-price/index', 'Admin\MarkupPriceSettingController@index')->name('markup_price.index');
     Route::put('markup-price/update', 'Admin\MarkupPriceSettingController@update')->name('markup_price.update');
 
-    Route::get('autocheck-setting', 'Admin\AutoCheckOrderController@index')->name('autocheck-setting.index');
-    Route::put('autocheck-setting/update', 'Admin\AutoCheckOrderController@update')->name('autocheck-setting.update');
+     //conversation of seller customer for complain order
+     Route::get('conversations-complained', 'ConversationController@admin_complain_index')->name('conversations.admin_index_complained');
+    //  Route::get('conversations/{id}/show', 'ConversationController@admin_show')->name('conversations.admin_show');
 
+    Route::get('/migration-data', 'MigrationDataController@updateShopAddress')->name('updateShopAddress');
 });

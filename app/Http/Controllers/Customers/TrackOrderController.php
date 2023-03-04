@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Customers;
 
 use App\Http\Controllers\Controller;
-use App\Order;
+use App\Models\Order;
 use App\Models\Complain;
 use App\Services\RajaOngkirService;
 use stdClass;

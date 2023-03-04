@@ -25,11 +25,11 @@
                             }
                         @endphp
                         <a href="javascript:void(0)" class="dropdown-toggle text-reset py-2" data-toggle="dropdown" data-display="static">
-                            <img src="{{ static_asset('assets/img/placeholder.jpg') }}" data-src="{{ static_asset('assets/img/flags/'.$locale.'.png') }}" class="mr-2 lazyload" alt="{{ \App\Language::where('code', $locale)->first()->name }}" height="11">
-                            <span class="opacity-60">{{ \App\Language::where('code', $locale)->first()->name }}</span>
+                            <img src="{{ static_asset('assets/img/placeholder.jpg') }}" data-src="{{ static_asset('assets/img/flags/'.$locale.'.png') }}" class="mr-2 lazyload" alt="{{ \App\Models\Language::where('code', $locale)->first()->name }}" height="11">
+                            <span class="opacity-60">{{ \App\Models\Language::where('code', $locale)->first()->name }}</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                            @foreach (\App\Language::all() as $key => $language)
+                            @foreach (\App\Models\Language::all() as $key => $language)
                                 <li>
                                     <a href="javascript:void(0)" data-flag="{{ $language->code }}" class="dropdown-item @if($locale == $language) active @endif">
                                         <img src="{{ static_asset('assets/img/placeholder.jpg') }}" data-src="{{ static_asset('assets/img/flags/'.$language->code.'.png') }}" class="mr-1 lazyload" alt="{{ $language->name }}" height="11">
@@ -48,14 +48,14 @@
                                 $currency_code = Session::get('currency_code');
                             }
                             else{
-                                $currency_code = \App\Currency::findOrFail(get_setting('system_default_currency'))->code;
+                                $currency_code = \App\Models\Currency::findOrFail(get_setting('system_default_currency'))->code;
                             }
                         @endphp
                         <a href="javascript:void(0)" class="dropdown-toggle text-reset py-2 opacity-60" data-toggle="dropdown" data-display="static">
-                            {{ \App\Currency::where('code', $currency_code)->first()->name }} {{ (\App\Currency::where('code', $currency_code)->first()->symbol) }}
+                            {{ \App\Models\Currency::where('code', $currency_code)->first()->name }} {{ (\App\Models\Currency::where('code', $currency_code)->first()->symbol) }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right dropdown-menu-lg-left">
-                            @foreach (\App\Currency::where('status', 1)->get() as $key => $currency)
+                            @foreach (\App\Models\Currency::where('status', 1)->get() as $key => $currency)
                                 <li>
                                     <a class="dropdown-item @if($currency_code == $currency->code) active @endif" href="javascript:void(0)" data-currency="{{ $currency->code }}">{{ $currency->name }} ({{ $currency->symbol }})</a>
                                 </li>
@@ -153,7 +153,7 @@
                             <a href="{{ route('user.login') }}" class="text-reset d-inline-block opacity-60">{{ translate('Login')}}</a>
                         </li>
                         <li class="list-inline-item">
-                            <a href="{{ route('user.registration') }}" class="text-reset d-inline-block opacity-60">{{ translate('Registration')}}</a>
+                            <a href="{{ route('user.registration') }}" class="text-reset d-inline-block opacity-60">{{ translate('User Registration')}}</a>
                         </li>
                         <li class="list-inline-item">
                             <a href="{{ route('shops.create') }}" class="btn btn-primary btn-sm">
@@ -172,7 +172,7 @@
         <div class="container">
             <div class="d-flex align-items-center">
 
-                <div class="col-auto col-xl-3 pl-0 pr-2 d-flex align-items-center">
+                <div class="col-auto pl-0 pr-2 d-flex align-items-center">
                     <a class="d-block py-20px mr-3 ml-0" href="{{ route('home') }}">
                         @php
                             $header_logo = get_setting('header_logo');
@@ -180,10 +180,15 @@
                         @if($header_logo != null)
                             <img src="{{ uploaded_asset($header_logo) }}" alt="{{ env('APP_NAME') }}" class="mw-100 h-60px h-md-60px" height="60">
                         @else
-                            <img src="{{ static_asset('assets/img/inatrade.png') }}" alt="{{ env('APP_NAME') }}" class="mw-100 h-60px h-md-60px" height="60">
+                            <img src="{{ static_asset('assets/img/logo.png') }}" alt="{{ env('APP_NAME') }}" class="mw-100 h-60px h-md-60px" height="60">
                         @endif
 
-                            <img src="{{ static_asset('assets/img/logo_umkm_naik_kelas.png') }}" alt="{{ env('APP_NAME') }}" class="mw-100 h-60px h-md-60px" height="60" style="padding-left:10px;">
+                        @php
+                            $header_logo_right = get_setting('header_logo_right');
+                        @endphp
+                        @if($header_logo_right != null)
+                            <img src="{{ uploaded_asset($header_logo_right) }}" alt="{{ env('APP_NAME') }}" class="mw-100 h-60px h-md-60px" height="60">
+                        @endif
 
                     </a>
 
@@ -260,7 +265,6 @@
                         @include('frontend.partials.cart')
                     </div>
                 </div>
-                <!--<img src="{{ static_asset('assets/img/logo_umkm_naik_kelas.png') }}" alt="{{ env('APP_NAME') }}" class="mw-100 h-60px h-md-60px" height="60" style="padding-left: 10px;">-->
 
             </div>
         </div>
@@ -280,12 +284,22 @@
         <div class="bg-white border-top border-gray-200 py-1">
             <div class="container">
                 <ul class="list-inline mb-0 pl-0 mobile-hor-swipe text-center">
-                    @foreach (json_decode( get_setting('header_menu_labels'), true) as $key => $value)
-                    <li class="list-inline-item mr-0">
-                        <a href="{{ $key == 0 ? route('home') : json_decode( get_setting('header_menu_links'), true)[$key] }}" class="opacity-60 fs-14 px-3 py-2 d-inline-block fw-600 hov-opacity-100 text-reset">
-                            {{ translate($value) }}
-                        </a>
-                    </li>
+                    @foreach (json_decode( get_setting('header_menu_labels'), true) as $key => $value)                        
+                        @if ($value == 'InaMarket Tour')
+                            @if (Auth::check())
+                                <li class="list-inline-item mr-0">
+                                    <a href="{{ $key == 0 ? route('home') : json_decode( get_setting('header_menu_links'), true)[$key] }}" class="opacity-60 fs-14 px-3 py-2 d-inline-block fw-600 hov-opacity-100 text-reset">
+                                        {{ translate($value) }}
+                                    </a>
+                                </li>
+                            @endif
+                        @else
+                            <li class="list-inline-item mr-0">
+                                <a href="{{ $key == 0 ? route('home') : json_decode( get_setting('header_menu_links'), true)[$key] }}" class="opacity-60 fs-14 px-3 py-2 d-inline-block fw-600 hov-opacity-100 text-reset">
+                                    {{ translate($value) }}
+                                </a>
+                            </li>
+                        @endif
                     @endforeach
                 </ul>
             </div>

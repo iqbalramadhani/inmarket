@@ -19,7 +19,7 @@ class FlashDealController extends Controller
     public function products($id){
         $flash_deal = FlashDeal::find($id);
         $products = collect();
-        foreach ($flash_deal->flashDealProducts as $key => $flash_deal_product) {
+        foreach ($flash_deal->flash_deal_products as $key => $flash_deal_product) {
             if(Product::find($flash_deal_product->product_id) != null){
                 $products->push(Product::find($flash_deal_product->product_id));
             }

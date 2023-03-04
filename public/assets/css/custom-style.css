@@ -1,1 +1,23 @@
 /*your custom css goes here*/
+.mobile-register {
+    display:none;
+}
+
+@media (max-width: 1000px) {
+    .mobile-register {
+        display:inline;
+    }
+}
+
+
+@media (max-height : 1300px){
+    #payment-popup {
+        height: 600px;
+    }
+}
+
+@media (max-height : 700px){
+    #payment-popup {
+        height: 500px;
+    }
+}

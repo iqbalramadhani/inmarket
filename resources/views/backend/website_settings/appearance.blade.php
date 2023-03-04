@@ -210,43 +210,6 @@
                     </form>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="fw-600 mb-0">Whatsapp Konfigurasi</h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('business_settings.update') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="form-group row">
-                            <label class="col-md-3 col-from-label">Tampilkan Pop up Whatsapp</label>
-                            <div class="col-md-8">
-                                <label class="aiz-switch aiz-switch-success mb-0">
-                                    <input type="hidden" name="types[]" value="show_whatsapp_popup" />
-                                    <input type="checkbox" name="show_whatsapp_popup" @if( get_setting('show_whatsapp_popup') == 'on') checked @endif>
-                                    <span></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-md-3 col-from-label">Nomor Whatsapp</label>
-                            <div class="col-md-8">
-                                <input type="hidden" name="types[]" value="whatsapp_number" />
-                                <input type="number" min="0" class="form-control"  placeholder="62822xxx" name="whatsapp_number" value="{{ get_setting('whatsapp_number') }}">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-md-3 col-from-label">Text</label>
-                            <div class="col-md-8">
-                                <input type="hidden" name="types[]" value="whatsapp_text" />
-                                <input type="text" class="form-control"  placeholder="Saya ada kendala" name="whatsapp_text" value="{{ get_setting('whatsapp_text') }}">
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <button type="submit" class="btn btn-primary">{{ translate('Update') }}</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
     	</div>
     </div>
 

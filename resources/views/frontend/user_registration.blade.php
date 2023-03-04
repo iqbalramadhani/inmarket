@@ -1,5 +1,13 @@
 @extends('frontend.layouts.app')
 
+@section('style')
+    <style>
+        .error{
+            color:red;
+        }
+    </style>
+@endsection
+
 @section('content')
     <section class="gry-bg py-4">
         <div class="profile">
@@ -13,6 +21,13 @@
                                 </h1>
                             </div>
                             <div class="px-4 py-3 py-lg-4">
+                                @if ($errors->count() > 0)
+                                    <div id="ERROR_COPY" style="display: none;" class="alert alert-danger">
+                                            @foreach ($errors->all() as $error)
+                                               {{ $error }}<br/>
+                                            @endforeach
+                                    </div>
+                                @endif
                                 <div class="">
                                     @if ($errors->has('is_agree_tos_customer'))
                                         <div class="alert alert-danger">
@@ -21,11 +36,11 @@
                                             </span>
                                         </div>
                                     @endif
-                                    <form id="reg-form" class="form-default" role="form" action="{{ route('register.new') }}" method="POST">
+                                    <form id="register_form" class="form-default" role="form" action="{{ route('register.buyer') }}" method="POST">
                                         @csrf
-                                        <div id="tos-place"></div>
+                                        <input type="hidden" name="is_agree_tos_customer" value="1">
                                         <div class="form-group">
-                                            <input type="text" class="form-control{{ $errors->has('name') ? ' is-invalid' : '' }}" value="{{ old('name') ?? '' }}" placeholder="{{  translate('Full Name') }}" name="name">
+                                            <input type="text" class="form-control{{ $errors->has('name') ? ' is-invalid' : '' }}" value="{{ old('name') }}" placeholder="{{  translate('Full Name') }}" name="name">
                                             @if ($errors->has('name'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('name') }}</strong>
@@ -33,15 +48,15 @@
                                             @endif
                                         </div>
 
-                                        @if (\App\Addon::where('unique_identifier', 'otp_system')->first() != null && \App\Addon::where('unique_identifier', 'otp_system')->first()->activated)
+                                        @if (addon_is_activated('otp_system'))
                                             <div class="form-group phone-form-group mb-1">
-                                                <input type="tel" id="phone-code" class="form-control{{ $errors->has('phone') ? ' is-invalid' : '' }}" value="{{ old('phone') ?? '' }}" placeholder="" name="phone" autocomplete="off">
+                                                <input type="tel" id="phone-code" class="form-control{{ $errors->has('phone') ? ' is-invalid' : '' }}" value="{{ old('phone') }}" placeholder="" name="phone" autocomplete="off">
                                             </div>
 
                                             <input type="hidden" name="country_code" value="">
 
                                             <div class="form-group email-form-group mb-1 d-none">
-                                                <input type="email" class="form-control {{ $errors->has('email') ? ' is-invalid' : '' }}" value="{{ old('email') ?? '' }}" placeholder="{{  translate('Email') }}" name="email"  autocomplete="off">
+                                                <input type="email" class="form-control {{ $errors->has('email') ? ' is-invalid' : '' }}" value="{{ old('email') }}" placeholder="{{  translate('Email') }}" name="email"  autocomplete="off">
                                                 @if ($errors->has('email'))
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $errors->first('email') }}</strong>
@@ -54,7 +69,7 @@
                                             </div>
                                         @else
                                             <div class="form-group">
-                                                <input type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" value="{{ old('email') ?? '' }}" placeholder="{{  translate('Email') }}" name="email">
+                                                <input type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" value="{{ old('email') }}" placeholder="{{  translate('Email') }}" name="email">
                                                 @if ($errors->has('email'))
                                                     <span class="invalid-feedback" role="alert">
                                                         <strong>{{ $errors->first('email') }}</strong>
@@ -73,7 +88,7 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <input type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" placeholder="{{  translate('Password') }}" name="password" >
+                                            <input type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" placeholder="{{  translate('Password') }}" name="password" id="password">
                                             @if ($errors->has('password'))
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $errors->first('password') }}</strong>
@@ -82,7 +97,7 @@
                                         </div>
 
                                         <div class="form-group">
-                                            <input type="password" class="form-control" placeholder="{{  translate('Confirm Password') }}" name="password_confirmation" >
+                                            <input type="password" class="form-control" placeholder="{{  translate('Confirm Password') }}" name="password_confirmation">
                                         </div>
 
                                         @if(get_setting('google_recaptcha') == 1)
@@ -90,14 +105,6 @@
                                                 <div class="g-recaptcha" data-sitekey="{{ env('CAPTCHA_KEY') }}"></div>
                                             </div>
                                         @endif
-
-                                        <div class="mb-3">
-                                            <label class="aiz-checkbox">
-                                                <input type="checkbox" name="checkbox_example_1" required>
-                                                <span class=opacity-60>{{ translate('By signing up you agree to our terms and conditions.')}}</span>
-                                                <span class="aiz-square-check"></span>
-                                            </label>
-                                        </div>
 
                                         <div class="mb-5">
                                             <button type="submit" class="btn btn-primary btn-block fw-600">{{  translate('Create Account') }}</button>
@@ -145,19 +152,15 @@
         </div>
     </section>
 
-
-    <!-- Modal TOS Customer -->
-    <div class="modal fade" id="modalTosCustomer" tabindex="-1" role="dialog" aria-labelledby="modalTosCustomerTitle" aria-hidden="true">
+     <!-- Modal TOS Customer -->
+     <div class="modal fade" id="modalTosCustomer" data-keyboard="false" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modalTosCustomerTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Term of Service</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="exampleModalLongTitle">Kebijakan Penggunaan & Privasi</h5>
                 </div>
                 <div class="modal-body" style="max-height:50vh">
-                    {!! \App\Page::find(5)->content !!}
+                    {!! \App\Models\Page::find(5)->content !!}
                 </div>
                 <div class="modal-footer">
                     <div class="mb-3">
@@ -167,12 +170,11 @@
                             <span class="aiz-square-check"></span>
                         </label>
                     </div>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal">Simpan</button>
+                    <input type="button" value="Setuju" class="btn btn-primary" name="SubmitTosSeller" id="SubmitTosSeller" data-dismiss="modal" disabled>
                 </div>
             </div>
         </div>
     </div>
-
 @endsection
 
 
@@ -180,45 +182,105 @@
     @if(get_setting('google_recaptcha') == 1)
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     @endif
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
+
 
     <script type="text/javascript">
-        $('#modalTosCustomer').modal('show')
+
+    $('#register_form').validate({
+        rules: {
+            name: {
+                required: true,
+            },
+            email: {
+                required: true,
+                email: true,
+                remote:"{{ route('validate.register') }}"
+            },
+            phone: {
+                required: true,
+                remote:"{{ route('validate.register') }}"
+            },
+            password: {
+                required: true,
+                minlength: 8
+            },
+            password_confirmation: {
+                required: true,
+                equalTo: "#password"
+            },
+        },
+          
+        messages: {
+            name: {
+                required: "Please enter your name",
+            },
+            email: {
+                required: "Please enter your email" ,
+                remote:"Email already exist"
+            },
+            phone: {
+                required: "Please enter your phone number",
+                remote:"Phone number already exist"
+            },
+            password: {
+                required: "Please enter password",
+            },
+            password_confirmation: {
+                required: "Please enter confirm password",
+                equalTo: "Password not match"
+            }
+        },
+   
+        submitHandler: function(form) {
+            $('#modalTosCustomer').modal('show');
+            var test = document.getElementById("SubmitTosSeller");
+
+            test.onclick = function(){
+                form.submit();
+            }
+        }
+     });
+
 
         $('#modalTosCustomer').on('shown.bs.modal', function () {
-            let elementModal = document.getElementById('modalTosCustomer')
-            if(elementModal.getElementsByClassName('modal-body')[0].clientHeight <  elementModal.getElementsByClassName('modal-body')[0].scrollHeight){
-                $('#checkbox_tos').prop('disabled', true)
-                jQuery(function($) {
-                    $('.modal-body').on('scroll', function(event) {
-                        var element = event.target;
-                        console.log('scrollHeight : ' + element.scrollHeight)
-                        console.log('scrollTop : ' + element.scrollTop)
-                        console.log('clientHeight : ' + element.clientHeight)
-                        let rest = (element.scrollHeight - element.scrollTop) - element.clientHeight
-                        if (rest < 20)
-                        {
-                            $('#checkbox_tos').prop('disabled', false)
-                            $('#checkbox_tos').prop('checked', true)
-                            $('#tos-place').append(`
-                                <input type="checkbox" name="is_agree_tos_customer" class="d-none" value="1" checked>
-                            `)
-                        }
+                let elementModal = document.getElementById('modalTosCustomer')
+                if(elementModal.getElementsByClassName('modal-body')[0].clientHeight <  elementModal.getElementsByClassName('modal-body')[0].scrollHeight){
+                    $('#checkbox_tos').prop('disabled', true)
+                    jQuery(function($) {
+                        $('.modal-body').on('scroll', function(event) {
+                            var element = event.target;
+                            console.log('scrollHeight : ' + element.scrollHeight)
+                            console.log('scrollTop : ' + element.scrollTop)
+                            console.log('clientHeight : ' + element.clientHeight)
+                            let rest = (element.scrollHeight - element.scrollTop) - element.clientHeight
+                            if (rest < 20)
+                            {
+                                $('#SubmitTosSeller').prop('disabled', false)
+                                $('#checkbox_tos').prop('disabled', false)
+                                $('#checkbox_tos').prop('checked', true)
+                                $('#tos-place').append(`
+                                    <input type="checkbox" name="is_agree_tos_customer" class="d-none" value="1" checked>
+                                `)
+
+                                var button = $('#SubmitTosSeller');
+                                $('#checkbox_tos').change(function(event) {
+                                    button.prop('disabled', !$(event.target).is(':checked'));
+                                });
+                            }
+                        });
                     });
-                });
-            }else if(elementModal.getElementsByClassName('modal-body')[0].clientHeight === elementModal.getElementsByClassName('modal-body')[0].scrollHeight){
-                $('#checkbox_tos').prop('disabled', false)
-                $('#checkbox_tos').prop('checked', false)
-                $('#checkbox_tos').on('click', function (event) {
-                    if($(this).is(':checked')){
-                        $('#tos-place').append(`
-                            <input id="checkbox_tos_in" type="checkbox" class="d-none" name="is_agree_tos_customer" value="1" checked>
-                        `)
-                    }else{
-                        $('#checkbox_tos_in').remove()
-                    }
-                })
-            }
+                }else if(elementModal.getElementsByClassName('modal-body')[0].clientHeight === elementModal.getElementsByClassName('modal-body')[0].scrollHeight){
+                    $('#checkbox_tos').prop('disabled', false)
+                    $('#checkbox_tos').prop('checked', false)
+                    var button = $('#SubmitTosSeller');
+                    $('#checkbox_tos').change(function(event) {
+                        button.prop('disabled', !$(event.target).is(':checked'));
+                    });
+                }
         })
+
+        
 
         @if(get_setting('google_recaptcha') == 1)
         // making the CAPTCHA  a required field for form submission
@@ -255,7 +317,7 @@
         var iti = intlTelInput(input, {
             separateDialCode: true,
             utilsScript: "{{ static_asset('assets/js/intlTelutils.js') }}?1590403638580",
-            onlyCountries: @php echo json_encode(\App\Country::where('status', 1)->pluck('code')->toArray()) @endphp,
+            onlyCountries: @php echo json_encode(\App\Models\Country::where('status', 1)->pluck('code')->toArray()) @endphp,
             customPlaceholder: function(selectedCountryPlaceholder, selectedCountryData) {
                 if(selectedCountryData.iso2 == 'bd'){
                     return "01xxxxxxxxx";

@@ -41,7 +41,7 @@
                                 @if ($customer_package->amount == 0)
                                     <button class="btn btn-primary" onclick="get_free_package({{ $customer_package->id}})">{{ translate('Free Package')}}</button>
                                 @else
-                                    @if (\App\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Addon::where('unique_identifier', 'offline_payment')->first()->activated )
+                                    @if (addon_is_activated('offline_payment') )
                                         <button class="btn btn-primary" onclick="select_payment_type({{ $customer_package->id}})">{{ translate('Purchase Package')}}</button>
                                     @else
                                         <button class="btn btn-primary" onclick="show_price_modal({{ $customer_package->id}})">{{ translate('Purchase Package')}}</button>
@@ -119,6 +119,12 @@
                                         @if (get_setting('stripe_payment') == 1)
                                             <option value="stripe">{{ translate('Stripe')}}</option>
                                         @endif
+                                        @if (get_setting('mercadopago_payment') == 1)
+                                            <option value="mercadopago">{{ translate('Mercadopago')}}</option>
+                                        @endif
+                                        @if(get_setting('toyyibpay_payment') == 1)
+                                            <option value="toyyibpay">{{ translate('ToyyibPay')}}</option>
+                                        @endif
                                         @if(get_setting('sslcommerz_payment') == 1)
                                             <option value="sslcommerz">{{ translate('sslcommerz')}}</option>
                                         @endif
@@ -143,16 +149,13 @@
                                         @if(get_setting('iyzico') == 1)
                                             <option value="iyzico">{{ translate('Iyzico')}}</option>
                                         @endif
-                                        @if(get_setting('proxypay') == 1)
-                                            <option value="proxypay">{{ translate('Proxypay')}}</option>
-                                        @endif
                                         @if(get_setting('nagad') == 1)
                                             <option value="nagad">{{ translate('Nagad')}}</option>
                                         @endif
                                         @if(get_setting('bkash') == 1)
                                             <option value="bkash">{{ translate('Bkash')}}</option>
                                         @endif
-                                        @if(\App\Addon::where('unique_identifier', 'african_pg')->first() != null && \App\Addon::where('unique_identifier', 'african_pg')->first()->activated)
+                                        @if(addon_is_activated('african_pg'))
                                             @if(get_setting('mpesa') == 1)
                                                 <option value="mpesa">{{ translate('Mpesa')}}</option>
                                             @endif

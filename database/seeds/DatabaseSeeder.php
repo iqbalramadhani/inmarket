@@ -12,8 +12,8 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
         // $this->call(UsersTableSeeder::class);
-        $this->call(PaymentGatewaySeeder::class);
-        $this->call(UpdateAdminConfiguration::class);
-
+        $this->call(RajaongkirProvinceTableSeeder::class); //Initial Data Rajaongkir Province
+        $this->call(RajaongkirCityTableSeeder::class); //Initial Data Rajaongkir City
+        $this->call(RajaongkirSubdistrictTableSeeder::class); //Initial Data Rajaongkir Subdistrict
     }
 }

@@ -8,66 +8,77 @@
 </div>
 
 <div class="row">
-    <div class="col-md-8 mx-auto">
+    <div class="col-md-12 mx-auto">
         <div class="card">
             <div class="card-body">
                 <form action="{{ route('seller_sale_report.index') }}" method="GET">
-                    <div class="form-group row offset-lg-2">
-                        <label class="col-md-3 col-form-label">{{translate('Sort by verificarion status')}} :</label>
+                    <div class="form-group row">
+                        <label class="col-md-6 col-form-label">{{translate('Sort by verificarion status')}} :</label>
                         <div class="col-md-5">
-                            <select class="from-control aiz-selectpicker" name="verification_status" required>
-                               <option value="1" @if($sort_by == '1') selected @endif>{{ translate('Approved') }}</option>
-                               <option value="0" @if($sort_by == '0') selected @endif>{{ translate('Non Approved') }}</option>
+                            <select class="custom-select custom-select-sm filter-type" id="status_filter" name="status_filter" >
+                                <option value="">Semua</option>
+                                <option value="1">{{ translate('Approved') }}</option>
+                                <option value="0">{{ translate('Non Approved') }}</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button class="btn btn-primary" type="submit">{{ translate('Filter') }}</button>
+                        <div class="col-md-1" style="align: right">
+                            <a class="btn btn-success btn-sm" href="{{ route('seller_sale_report.download') }}" target="_blank">
+                                <i class="la la-download"></i>
+                            </a>
                         </div>
+                        
                     </div>
                 </form>
 
-                <table class="table table-bordered aiz-table mb-0">
+                <table class="table table-bordered table-striped mb-0 seller_sale_datatable">
                     <thead>
                         <tr>
                             <th>{{ translate('Seller Name') }}</th>
                             <th data-breakpoints="lg">{{ translate('Shop Name') }}</th>
                             <th data-breakpoints="lg">{{ translate('Number of Product Sale') }}</th>
                             <th>{{ translate('Order Amount') }}</th>
+                            <th>{{ translate('Verification Status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($sellers as $key => $seller)
-                            @if($seller->user != null)
-                                <tr>
-                                    <td>{{ $seller->user->name }}</td>
-                                    @if($seller->user->shop != null)
-                                        <td>{{ $seller->user->shop->name }}</td>
-                                    @else
-                                        <td>--</td>
-                                    @endif
-                                    <td>
-                                        @php
-                                            $num_of_sale = 0;
-                                            foreach ($seller->user->products as $key => $product) {
-                                                $num_of_sale += $product->num_of_sale;
-                                            }
-                                        @endphp
-                                        {{ $num_of_sale }}
-                                    </td>
-                                    <td>
-                                        {{ single_price(\App\OrderDetail::where('seller_id', $seller->user->id)->sum('price')) }}
-                                    </td>
-                                </tr>
-                            @endif
-                        @endforeach
                     </tbody>
                 </table>
-                <div class="aiz-pagination mt-4">
-                    {{ $sellers->links() }}
-                </div>
             </div>
         </div>
     </div>
 </div>
+
+@endsection
+
+@section('script')
+<script type="text/javascript">
+  $(document).ready(function() {
+    load_data();
+    function load_data(verification_status = ''){
+        var table = $('.seller_sale_datatable').DataTable({
+            destroy: true,
+            processing: true,
+            serverSide: true,
+            ajax: {
+                    url: "{{ route('seller_sale_report.index') }}",
+                    data:{verification_status: verification_status}
+                },
+            columns: [
+                {data: 'seller_name', name: 'seller_name'},
+                {data: 'shop_name', name: 'shop_name'},
+                {data: 'num_of_sale', name: 'num_of_sale'},
+                {data: 'order_amount', name: 'order_amount', render: $.fn.dataTable.render.number( ',', '.', 0, 'Rp' )},
+                {data: 'verification_status', name: 'verification_status', orderable: false},
+            ],
+        });
+    }
+
+    $('#status_filter').change(function(){
+        var verification_status = $('#status_filter').val();
+        $('#seller_sale_datatable').DataTable().destroy();
+        load_data(verification_status);
+    });
+  });
+</script>
 
 @endsection

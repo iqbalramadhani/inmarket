@@ -11,14 +11,14 @@
     </div>
 
     <div class="row gutters-10 justify-content-center">
-        @if (\App\Addon::where('unique_identifier', 'seller_subscription')->first() != null && \App\Addon::where('unique_identifier', 'seller_subscription')->first()->activated)
+        @if (addon_is_activated('seller_subscription'))
             <div class="col-md-4 mx-auto mb-3" >
                 <div class="bg-grad-1 text-white rounded-lg overflow-hidden">
                   <span class="size-30px rounded-circle mx-auto bg-soft-primary d-flex align-items-center justify-content-center mt-3">
                       <i class="las la-upload la-2x text-white"></i>
                   </span>
                   <div class="px-3 pt-3 pb-3">
-                      <div class="h4 fw-700 text-center">{{ max(0, Auth::user()->seller->remaining_uploads) }}</div>
+                      <div class="h4 fw-700 text-center">{{ max(0, optional(auth()->user()->seller->seller_package)->product_upload_limit - auth()->user()->products()->count()) }}</div>
                       <div class="opacity-50 text-center">{{  translate('Remaining Uploads') }}</div>
                   </div>
                 </div>
@@ -36,9 +36,9 @@
             </a>
         </div>
 
-        @if (\App\Addon::where('unique_identifier', 'seller_subscription')->first() != null && \App\Addon::where('unique_identifier', 'seller_subscription')->first()->activated)
+        @if (addon_is_activated('seller_subscription'))
         @php
-            $seller_package = \App\SellerPackage::find(Auth::user()->seller->seller_package_id);
+            $seller_package = \App\Models\SellerPackage::find(Auth::user()->seller->seller_package_id);
         @endphp
         <div class="col-md-4">
             <a href="{{ route('seller_packages_list') }}" class="text-center bg-white shadow-sm hov-shadow-lg text-center d-block p-3 rounded">
@@ -77,7 +77,10 @@
                         <th width="30%">{{ translate('Name')}}</th>
                         <th data-breakpoints="md">{{ translate('Category')}}</th>
                         <th data-breakpoints="md">{{ translate('Current Qty')}}</th>
-                        <th width="15%">{{ translate('Base Price')}}</th>
+                        <th>{{ translate('Base Price')}}</th>
+                        @if(get_setting('product_approve_by_admin') == 1)
+                            <th data-breakpoints="md">{{ translate('Approval')}}</th>
+                        @endif
                         <th data-breakpoints="md">{{ translate('Published')}}</th>
                         <th data-breakpoints="md">{{ translate('Featured')}}</th>
                         <th data-breakpoints="md" class="text-right">{{ translate('Options')}}</th>
@@ -107,7 +110,16 @@
                                     echo $qty;
                                 @endphp
                             </td>
-                            <td>{{ rupiah_format($markup->type == 'persentase' ? ((100/(100+$markup->value)) * $product->unit_price) : ($product->unit_price - $markup->value )) }}</td>
+                            <td>{{ $product->unit_price }}</td>
+                            @if(get_setting('product_approve_by_admin') == 1)
+                                <td>
+                                    @if ($product->approved == 1)
+                                        <span class="badge badge-inline badge-success">{{ translate('Approved')}}</span>
+                                    @else
+                                        <span class="badge badge-inline badge-info">{{ translate('Pending')}}</span>
+                                    @endif
+                                </td>
+                            @endif
                             <td>
                                 <label class="aiz-switch aiz-switch-success mb-0">
                                     <input onchange="update_published(this)" value="{{ $product->id }}" type="checkbox" <?php if($product->published == 1) echo "checked";?> >

@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Laravel</title>
+    <title>{{  translate('INVOICE') }}</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta charset="UTF-8">
 	<style media="all">
@@ -20,7 +20,7 @@
 		}
 		.gry-color *,
 		.gry-color{
-			color:#878f9c;
+			color:#000;
 		}
 		table{
 			width: 100%;
@@ -97,7 +97,7 @@
 				@endphp
 				<tr><td class="strong small gry-color">{{ translate('Bill to') }}:</td></tr>
 				<tr><td class="strong">{{ $shipping_address->name }}</td></tr>
-				<tr><td class="gry-color small">{{ $shipping_address->address }}, {{ $shipping_address->city }}, {{ $shipping_address->country }}</td></tr>
+				<tr><td class="gry-color small">{{ $shipping_address->address }}, {{ $shipping_address->city }}, {{ $shipping_address->postal_code }}, {{ $shipping_address->country }}</td></tr>
 				<tr><td class="gry-color small">{{ translate('Email') }}: {{ $shipping_address->email }}</td></tr>
 				<tr><td class="gry-color small">{{ translate('Phone') }}: {{ $shipping_address->phone }}</td></tr>
 			</table>
@@ -121,11 +121,11 @@
 							<tr class="">
 								<td>{{ $orderDetail->product->name }} @if($orderDetail->variation != null) ({{ $orderDetail->variation }}) @endif</td>
 								<td>
-									@if ($orderDetail->shipping_type != null && $orderDetail->shipping_type == 'home_delivery')
+									@if ($order->shipping_type != null && $order->shipping_type == 'home_delivery')
 										{{ translate('Home Delivery') }}
-									@elseif ($orderDetail->shipping_type == 'pickup_point')
-										@if ($orderDetail->pickup_point != null)
-											{{ $orderDetail->pickup_point->getTranslation('name') }} ({{ translate('Pickip Point') }})
+									@elseif ($order->shipping_type == 'pickup_point')
+										@if ($order->pickup_point != null)
+											{{ $order->pickup_point->getTranslation('name') }} ({{ translate('Pickip Point') }})
 										@endif
 									@endif
 								</td>
@@ -150,7 +150,11 @@
 	        	</thead>
 		        <tbody>
 			        <tr>
-			            <td>
+			            <td class="text-left">
+                            @php
+                                $removedXML = '<?xml version="1.0" encoding="UTF-8"?>';
+                            @endphp
+                            {!! str_replace($removedXML,"", QrCode::size(100)->generate($order->code)) !!}
 			            </td>
 			            <td>
 					        <table class="text-right sm-padding small strong">

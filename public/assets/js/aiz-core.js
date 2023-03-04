@@ -918,7 +918,7 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                             data.pop();
                         },
                         onPaste: function (e) {
-                            if(!format){
+                            if(format){
                                 var bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
                                 e.preventDefault();
                                 document.execCommand('insertText', false, bufferText);
@@ -1076,11 +1076,11 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                 {
                     // settings
                     showProgressbar: true,
-                    delay: 2500,
+                    delay: 3500,
                     mouse_over: "pause",
                     placement: {
-                        from: "bottom",
-                        align: "left",
+                        from: "top",
+                        align: "center",
                     },
                     animate: {
                         enter: "animated fadeInUp",
@@ -1088,7 +1088,7 @@ $.fn.toggleAttr = function (attr, attr1, attr2) {
                     },
                     type: type,
                     template:
-                        '<div data-notify="container" class="aiz-notify alert alert-{0}" role="alert">' +
+                        '<div data-notify="container" class="aiz-notify alert alert-{0}" role="alert" style="display: flex; justify-content: center; align-items: center;">' +
                         '<button type="button" aria-hidden="true" data-notify="dismiss" class="close"><i class="las la-times"></i></button>' +
                         '<span data-notify="message">{2}</span>' +
                         '<div class="progress" data-notify="progressbar">' +

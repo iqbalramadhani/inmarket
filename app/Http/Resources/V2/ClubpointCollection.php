@@ -9,17 +9,17 @@ class ClubpointCollection extends ResourceCollection
     public function toArray($request)
     {
         return [
-            'data' => $this->collection->map(function($data) {
+            'data' => $this->collection->map(function ($data) {
 
                 $points = number_format($data->points, 2, '.', '');
                 $points = floatval($points);
 
                 return [
-                    'id'      =>(int) $data->id,
-                    'user_id' =>(int) $data->user_id,
-                    'points' => $points,
-                    'convert_status' => $data->convert_status,
-                    'date' => date('d-m-Y', strtotime($data->created_at)),
+                    'id'        => (int) $data->id,
+                    'user_id'    => (int) $data->user_id,
+                    'points'    => floatval($points),
+                    'convert_status' => (int) $data->convert_status,
+                    'date'      => date('d-m-Y', strtotime($data->created_at)),
                 ];
             })
         ];

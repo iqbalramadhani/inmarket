@@ -16,7 +16,7 @@
                 <h4>Rp.</h4>
             </span>
             <div class="px-3 pt-3 pb-3">
-                <div class="h4 fw-700 text-center">{{ single_price(Auth::user()->balance) }}</div>
+                <div class="h4 fw-700 text-center">{{ format_price(Auth::user()->balance) }}</div>
                 <div class="opacity-50 text-center">{{ translate('Wallet Balance') }}</div>
             </div>
           </div>
@@ -29,15 +29,15 @@
             <div class="fs-18 text-white">{{ translate('Withdraw') }}</div>
         </div>
       </div>
-      <div class="col-md-3 mx-auto mb-3" >
+      <!-- <div class="col-md-3 mx-auto mb-3" >
         <div class="p-3 rounded mb-3 c-pointer text-center bg-grad-3 shadow-sm hov-shadow-lg has-transition" onclick="show_wallet_modal()">
             <span class="size-60px rounded-circle mx-auto bg-default d-flex align-items-center justify-content-center mb-3">
                 <i class="las la-plus la-3x text-white"></i>
             </span>
             <div class="fs-18 text-white">{{ translate('Top Up') }}</div>
         </div>
-      </div>
-      @if (\App\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Addon::where('unique_identifier', 'offline_payment')->first()->activated)
+      </div> -->
+      @if (\App\Models\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Models\Addon::where('unique_identifier', 'offline_payment')->first()->activated)
           <div class="col-md-4 mx-auto mb-3" >
               <div class="p-3 rounded mb-3 c-pointer text-center bg-white shadow-sm hov-shadow-lg has-transition" onclick="show_make_wallet_recharge_modal()">
                   <span class="size-60px rounded-circle mx-auto bg-secondary d-flex align-items-center justify-content-center mb-3">
@@ -56,11 +56,12 @@
             <table class="table aiz-table mb-0">
                 <thead>
                   <tr>
-                      <th>#</th>
-                      <th data-breakpoints="lg">{{  translate('Date') }}</th>
+                      <th>No.</th>
+                      <th data-breakpoints="lg">{{ translate('Date') }}</th>
                       <th data-breakpoints="lg">{{ translate('Tipe')}}</th>
                       <th data-breakpoints="lg">{{ translate('Payment Method')}}</th>
                       <th>{{ translate('Amount')}}</th>
+                      <th>{{ translate('Admin Fee')}}</th>
                       <th data-breakpoints="lg">{{ translate('Status')}}</th>
                       <th data-breakpoints="lg" >{{ translate('Payment Confirmation')}}</th>
                   </tr>
@@ -78,7 +79,8 @@
                             @endif
                             </td>
                           <td >{{ ucfirst(str_replace('_', ' ', $wallet ->payment_method)) }}</td>
-                          <td>{{ single_price($wallet->amount) }}</td>
+                          <td>{{ format_price($wallet->amount) }}</td>
+                          <td>{{ format_price($wallet->admin_fee) }}</td>
                           <td >
                             @if($wallet->type=='TOPUP')
                                 @if ($wallet->oy_id!=null && ($wallet->oy_id->status=='COMPLETE' || $wallet->oy_id->status=='Success'))
@@ -86,7 +88,7 @@
                                 @elseif ($wallet->oy_id!=null)
                                     <span class="badge badge-inline badge-warning">{{translate($wallet->oy_id->status)}}</span>
                                 @else
-                                    <span class="badge badge-inline badge-default">{{translate('No Data')}}</span>
+                                    <span class="badge badge-inline badge-default">-</span>
                                 @endif
                             @elseif ($wallet->type=='DISBURSEMENT')
                                 @if ($wallet->oy_withdraw!=null && $wallet->oy_withdraw->status=='Success')
@@ -94,7 +96,7 @@
                                 @elseif ($wallet->oy_withdraw!=null)
                                     <span class="badge badge-inline badge-warning">{{translate($wallet->oy_withdraw->status)}}</span>
                                 @else
-                                    <span class="badge badge-inline badge-default">{{translate('No Data')}}</span>
+                                    <span class="badge badge-inline badge-default">-</span>
                                 @endif
                             @endif
                         </td>
@@ -207,7 +209,7 @@
                                       @if (get_setting('nagad') == 1)
                                           <option value="nagad">{{ translate('Nagad')}}</option>
                                       @endif
-                                      @if(\App\Addon::where('unique_identifier', 'african_pg')->first() != null && \App\Addon::where('unique_identifier', 'african_pg')->first()->activated)
+                                      @if(\App\Models\Addon::where('unique_identifier', 'african_pg')->first() != null && \App\Models\Addon::where('unique_identifier', 'african_pg')->first()->activated)
                                           @if (get_setting('mpesa') == 1)
                                               <option value="mpesa">{{ translate('Mpesa')}}</option>
                                           @endif
@@ -218,7 +220,7 @@
                                               <option value="payfast">{{ translate('PayFast')}}</option>
                                           @endif
                                       @endif
-                                      @if (\App\Addon::where('unique_identifier', 'paytm')->first() != null && \App\Addon::where('unique_identifier', 'paytm')->first()->activated)
+                                      @if (\App\Models\Addon::where('unique_identifier', 'paytm')->first() != null && \App\Models\Addon::where('unique_identifier', 'paytm')->first()->activated)
                                           <option value="paytm">{{ translate('Paytm')}}</option>
                                       @endif
                                   </select>
@@ -244,6 +246,26 @@
               <form class="" id="withdraw_form" action="{{ route('wallet.withdraw') }}" method="post">
                   @csrf
                   <div class="modal-body gry-bg px-3 pt-3">
+                      @if(sizeof($accounts) < 1)
+                      <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-danger">
+                                    Mohon buat akun bank terlebih dahulu untuk melakukan penarikan dana. <a class="alert-link" href="{{ route('bank.create') }}">Buat Bank Akun Sekarang</a>
+                                </div>
+                            </div>
+                      </div>
+                      @endif
+                      <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-warning">
+                                    @if (Auth::user()->balance > 0)
+                                        Anda akan dikenakan biaya penarikan dana sebesar <b>{{ format_price(env('OYID_WITHDRAW_ADMIN_FEE')) }}</b>. Nominal maksimum yang dapat anda tarik sebesar <b>{{ format_price(Auth::user()->balance - env('OYID_WITHDRAW_ADMIN_FEE')) }}</b>
+                                    @else
+                                        Anda akan dikenakan biaya penarikan dana sebesar <b>{{ format_price(env('OYID_WITHDRAW_ADMIN_FEE')) }}</b>
+                                    @endif
+                                </div>
+                            </div>
+                      </div>
                       <div class="row">
                           <div class="col-md-4">
                               <label>{{ translate('Amount')}} <span class="text-danger">*</span></label>

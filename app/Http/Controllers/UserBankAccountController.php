@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bank;
-use App\Services\OYIService;
 use Illuminate\Http\Request;
 use App\Models\UserBankAccount;
 use Auth;
+use App\Services\OYIService;
 
 class UserBankAccountController extends Controller
 {
@@ -17,29 +17,6 @@ class UserBankAccountController extends Controller
         return view('frontend.user.seller.banks.create', [
             'banks' => $banks
         ]);
-    }
-
-    public function checkAccountNumber(Request $request): \Illuminate\Http\JsonResponse
-    {
-        $check = OYIService::accountInquiry(
-            "$request->bank_code",
-            "$request->account_number"
-        );
-
-        if($check->status->code === "000"){
-            $response = [
-                'valid' => true,
-                'bank_code' => $check->bank_code,
-                'account_number' => $check->account_number,
-                'account_name' => $check->account_name
-            ];
-        }else{
-            $response = [
-                'valid' => false
-            ];
-        }
-
-        return response()->json($response);
     }
 
     public function edit(Request $request, $id) {
@@ -72,7 +49,7 @@ class UserBankAccountController extends Controller
             'bank_name'  => $bank->name,
         ]);
 
-        flash(translate('New Bank account has successfully edit'))->success();
+        flash(translate('New Bank account has successfully updated'))->success();
         return redirect()->route('shops.index');
     }
 
@@ -80,5 +57,28 @@ class UserBankAccountController extends Controller
         UserBankAccount::find($id)->delete();
         flash(translate('Account has successfully deleted'))->success();
         return redirect()->route('shops.index');
+    }
+
+    public function checkAccountNumber(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $check = OYIService::accountInquiry(
+            "$request->bank_code",
+            "$request->account_number"
+        );
+
+        if($check->status->code === "000"){
+            $response = [
+                'valid' => true,
+                'bank_code' => $check->bank_code,
+                'account_number' => $check->account_number,
+                'account_name' => $check->account_name
+            ];
+        }else{
+            $response = [
+                'valid' => false
+            ];
+        }
+
+        return response()->json($response);
     }
 }

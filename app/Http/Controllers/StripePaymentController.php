@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Order;
-use App\BusinessSetting;
-use App\Seller;
+use App\Models\CombinedOrder;
+use App\Models\BusinessSetting;
+use App\Models\Seller;
 use Session;
-use App\CustomerPackage;
-use App\SellerPackage;
+use App\Models\CustomerPackage;
+use App\Models\SellerPackage;
 use Stripe\Stripe;
 
 class StripePaymentController extends Controller
@@ -27,8 +27,8 @@ class StripePaymentController extends Controller
         $amount = 0;
         if($request->session()->has('payment_type')){
             if($request->session()->get('payment_type') == 'cart_payment'){
-                $order = Order::findOrFail(Session::get('order_id'));
-                $amount = round($order->grand_total * 100);
+                $combined_order = CombinedOrder::findOrFail(Session::get('combined_order_id'));
+                $amount = round($combined_order->grand_total * 100);
             }
             elseif ($request->session()->get('payment_type') == 'wallet_payment') {
                 $amount = round($request->session()->get('payment_data')['amount'] * 100);
@@ -50,7 +50,7 @@ class StripePaymentController extends Controller
             'line_items' => [
                 [
                     'price_data' => [
-                    'currency' => \App\Currency::findOrFail(get_setting('system_default_currency'))->code,
+                    'currency' => \App\Models\Currency::findOrFail(get_setting('system_default_currency'))->code,
                     'product_data' => [
                         'name' => "Payment"
                     ],
@@ -75,7 +75,7 @@ class StripePaymentController extends Controller
 
             if ($payment_type == 'cart_payment') {
                 $checkoutController = new CheckoutController;
-                return $checkoutController->checkout_done(session()->get('order_id'), json_encode($payment));
+                return $checkoutController->checkout_done(session()->get('combined_order_id'), json_encode($payment));
             }
 
             if ($payment_type == 'wallet_payment') {

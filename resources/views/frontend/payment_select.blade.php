@@ -73,7 +73,7 @@
                                             </div>
                                         @endif
                                         @if(get_setting('oyid_payment') == 1)
-                                            <div class="col-6 col-md-3">
+                                            <div class="col-6 col-md-6">
                                                 <label class="aiz-megabox d-block mb-3">
                                                     <input value="oyid_va" class="online_payment" type="radio" name="payment_option" checked>
                                                     <span class="d-block p-3 aiz-megabox-elem">
@@ -85,7 +85,7 @@
                                                 </label>
                                             </div>
                                         @endif
-                                        @if(get_setting('oyid_payment') == 1)
+                                        <!-- @if(get_setting('oyid_payment') == 1)
                                             <div class="col-6 col-md-3">
                                                 <label class="aiz-megabox d-block mb-3">
                                                     <input value="oyid_card" class="online_payment" type="radio" name="payment_option" checked>
@@ -97,11 +97,13 @@
                                                     </span>
                                                 </label>
                                             </div>
-                                        @endif
-                                        @if(get_setting('oyid_payment') == 1)
+                                        @endif -->
+                                        <!-- @if(get_setting('oyid_payment') == 1)
                                             <div class="col-6 col-md-3">
                                                 <label class="aiz-megabox d-block mb-3">
-                                                    <input value="oyid_wallet" class="online_payment" type="radio" name="payment_option" checked>
+                                                    <input value="oyid_wallet" class="online_payment" type="radio" name="payment_option"
+                                                    id="e-wallet" 
+                                                    checked>
                                                     <span class="d-block p-3 aiz-megabox-elem">
                                                         <img src="{{ static_asset('assets/img/cards/e-wallet.png')}}" class="img-fluid mb-2">
                                                         <span class="d-block text-center">
@@ -110,13 +112,13 @@
                                                     </span>
                                                 </label>
                                             </div>
-                                        @endif
+                                        @endif -->
                                         @if(get_setting('oyid_payment') == 1)
-                                            <div class="col-6 col-md-3">
+                                            <div class="col-6 col-md-6">
                                                 <label class="aiz-megabox d-block mb-3">
                                                     <input value="oyid_qris" class="online_payment" type="radio" name="payment_option" checked>
                                                     <span class="d-block p-3 aiz-megabox-elem">
-                                                        <img src="{{ static_asset('assets/img/cards/e-wallet.png')}}" class="img-fluid mb-2">
+                                                        <img src="{{ static_asset('assets/img/cards/qris.jpg')}}" class="img-fluid mb-2">
                                                         <span class="d-block text-center">
                                                             <span class="d-block fw-600 fs-15">{{ translate('QRIS')}}</span>
                                                         </span>
@@ -293,7 +295,7 @@
                                                 </label>
                                             </div>
                                         @endif
-                                        @if(\App\Addon::where('unique_identifier', 'african_pg')->first() != null && \App\Addon::where('unique_identifier', 'african_pg')->first()->activated)
+                                        @if(\App\Models\Addon::where('unique_identifier', 'african_pg')->first() != null && \App\Models\Addon::where('unique_identifier', 'african_pg')->first()->activated)
                                             @if(get_setting('mpesa') == 1)
                                                 <div class="col-6 col-md-4">
                                                     <label class="aiz-megabox d-block mb-3">
@@ -334,7 +336,7 @@
                                                 </div>
                                             @endif
                                         @endif
-                                        @if(\App\Addon::where('unique_identifier', 'paytm')->first() != null && \App\Addon::where('unique_identifier', 'paytm')->first()->activated)
+                                        @if(\App\Models\Addon::where('unique_identifier', 'paytm')->first() != null && \App\Models\Addon::where('unique_identifier', 'paytm')->first()->activated)
                                             <div class="col-6 col-md-4">
                                                 <label class="aiz-megabox d-block mb-3">
                                                     <input value="paytm" class="online_payment" type="radio" name="payment_option" checked>
@@ -352,7 +354,7 @@
                                                 $digital = 0;
                                                 $cod_on = 1;
                                                 foreach($carts as $cartItem){
-                                                    $product = \App\Product::find($cartItem['product_id']);
+                                                    $product = \App\Models\Product::find($cartItem['product_id']);
                                                     if($product['digital'] == 1){
                                                         $digital = 1;
                                                     }
@@ -376,8 +378,8 @@
                                             @endif
                                         @endif
                                         @if (Auth::check())
-                                            @if (\App\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Addon::where('unique_identifier', 'offline_payment')->first()->activated)
-                                                @foreach(\App\ManualPaymentMethod::all() as $method)
+                                            @if (\App\Models\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Models\Addon::where('unique_identifier', 'offline_payment')->first()->activated)
+                                                @foreach(\App\Models\ManualPaymentMethod::all() as $method)
                                                     <div class="col-6 col-md-4">
                                                         <label class="aiz-megabox d-block mb-3">
                                                             <input value="{{ $method->heading }}" type="radio" name="payment_option" onchange="toggleManualPaymentData({{ $method->id }})" data-id="{{ $method->id }}" checked>
@@ -391,7 +393,7 @@
                                                     </div>
                                                 @endforeach
 
-                                                @foreach(\App\ManualPaymentMethod::all() as $method)
+                                                @foreach(\App\Models\ManualPaymentMethod::all() as $method)
                                                     <div id="manual_payment_info_{{ $method->id }}" class="d-none">
                                                         @php echo $method->description @endphp
                                                         @if ($method->bank_info != null)
@@ -409,14 +411,15 @@
                                 </div>
                             </div>
 
-                            @if (\App\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Addon::where('unique_identifier', 'offline_payment')->first()->activated)
+
+                            @if (\App\Models\Addon::where('unique_identifier', 'offline_payment')->first() != null && \App\Models\Addon::where('unique_identifier', 'offline_payment')->first()->activated)
                                 <div class="bg-white border mb-3 p-3 rounded text-left d-none">
                                     <div id="manual_payment_description">
 
                                     </div>
                                 </div>
                             @endif
-                            @if (Auth::check() && get_setting('wallet_system') == 1)
+                            <!-- @if (Auth::check() && get_setting('wallet_system') == 1)
                                 <div class="separator mb-3">
                                     <span class="bg-white px-3">
                                         <span class="opacity-60">{{ translate('Or')}}</span>
@@ -437,7 +440,8 @@
                                         </button>
                                     @endif
                                 </div>
-                            @endif
+                            @endif -->
+                           
                         </div>
                     </div>
                     <div class="pt-3">
@@ -459,7 +463,7 @@
                             </a>
                         </div>
                         <div class="col-6 text-right">
-                            <button type="button" onclick="submitOrder(this)" class="btn btn-primary fw-600">{{ translate('Complete Order')}}</button>
+                            <button type="button" onclick="submitOrder(this)" class="btn btn-primary fw-600">{{ translate('Complete Payment')}}</button>
                         </div>
                     </div>
                 </form>

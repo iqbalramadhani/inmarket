@@ -6,7 +6,7 @@
         <div class="aiz-titlebar mt-2 mbs-4">
             <div class="row align-items-center">
                 <div class="col-md-12">
-                    <h1 class="h3">{{ translate('Dashboard') }}</h1>
+                    <h1 class="h3">Rekening Bank Anda</h1>
                 </div>
             </div>
         </div>
@@ -32,7 +32,7 @@
                     <label>{{ translate('No Rekening ')}} <span class="text-danger">*</span></label>
                 </div>
                 <div class="col-md-8">
-                    <input type="text" lang="en" class="form-control" name="account_number" placeholder="{{ translate('Account Number')}}" required>
+                    <input type="text" lang="en" class="form-control" name="account_number" id="account_number" placeholder="{{ translate('Account Number')}}" required>
                 </div>
             </div>
             <div class="row mb-1">
@@ -82,7 +82,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 method: 'POST',
-                url: "{{route('seller.bank.check-account')}}",
+                url: "{{route('bank.check-account')}}",
                 data: {
                     bank_code: bank_code,
                     account_number: account_number
@@ -112,5 +112,8 @@
                 }
             })
         })
+
+        //jquery-mask-plugin
+        $('#account_number').mask('0000000000000000000000', {reverse: true});
     </script>
 @endsection

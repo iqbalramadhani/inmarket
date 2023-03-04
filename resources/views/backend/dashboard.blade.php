@@ -10,46 +10,17 @@
     </div>
 @endif
 @php
-    $sellers = \App\Seller::where('verification_status', 0)->where('verification_info', '!=', null)->count();
+    $sellers = \App\Models\Seller::where('verification_status', 0)->where('verification_info', '!=', null)->count();
 @endphp
 @if($sellers > 0)
     <div class="alert alert-info text-center">
         <span class="badge badge-info">{{ $sellers }}</span> Penjual Baru Saja Mengirimkan Data Verifikasi. <a href="{{ route('sellers.index') }}">Lihat Disini</a>
     </div>
 @endif
-
-@if(Auth::user()->user_type == 'admin' || in_array('0', json_decode(Auth::user()->staff->role->permissions)))
+@if(Auth::user()->user_type == 'admin' || in_array('1', json_decode(Auth::user()->staff->role->permissions)))
 <div class="row gutters-10">
     <div class="col-lg-6">
         <div class="row gutters-10">
-            <div class="col-6">
-                <div class="bg-grad-2 text-white rounded-lg mb-4 overflow-hidden">
-                    <div class="px-3 pt-3">
-                        <div class="opacity-50">
-                            <span class="fs-12 d-block">{{ translate('Total') }}</span>
-                            {{ translate('Customer') }}
-                        </div>
-                        <div class="h3 fw-700 mb-3">{{ \App\Customer::count() }}</div>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-                        <path fill="rgba(255,255,255,0.3)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
-                    </svg>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="bg-grad-3 text-white rounded-lg mb-4 overflow-hidden">
-                    <div class="px-3 pt-3">
-                        <div class="opacity-50">
-                            <span class="fs-12 d-block">{{ translate('Total') }}</span>
-                            {{ translate('Order') }}
-                        </div>
-                        <div class="h3 fw-700 mb-3">{{ \App\Order::count() }}</div>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-                        <path fill="rgba(255,255,255,0.3)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
-                    </svg>
-                </div>
-            </div>
             <div class="col-6">
                 <div class="bg-grad-1 text-white rounded-lg mb-4 overflow-hidden">
                     <div class="px-3 pt-3">
@@ -103,6 +74,64 @@
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
                         <path fill="rgba(255,255,255,0.6)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-grad-2 text-white rounded-lg mb-4 overflow-hidden">
+                    <div class="px-3 pt-3">
+                        <div class="opacity-50">
+                            <span class="fs-12 d-block">{{ translate('Total') }}</span>
+                            {{ translate('Customer') }}
+                        </div>
+                        <div class="h3 fw-700 mb-3">
+                            {{ \App\Models\User::where('user_type', 'customer')->where('email_verified_at', '!=', null)->count() }}
+                        </div>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                        <path fill="rgba(255,255,255,0.3)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-grad-3 text-white rounded-lg mb-4 overflow-hidden">
+                    <div class="px-3 pt-3">
+                        <div class="opacity-50">
+                            <span class="fs-12 d-block">{{ translate('Total') }}</span>
+                            {{ translate('Order') }}
+                        </div>
+                        <div class="h3 fw-700 mb-3">{{ \App\Models\Order::count() }}</div>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                        <path fill="rgba(255,255,255,0.3)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-grad-1 text-white rounded-lg mb-4 overflow-hidden">
+                    <div class="px-3 pt-3">
+                        <div class="opacity-50">
+                            <span class="fs-12 d-block">{{ translate('Total') }}</span>
+                            {{ translate('Product category') }}
+                        </div>
+                        <div class="h3 fw-700 mb-3">{{ \App\Models\Category::count() }}</div>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                        <path fill="rgba(255,255,255,0.3)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-grad-4 text-white rounded-lg mb-4 overflow-hidden">
+                    <div class="px-3 pt-3">
+                        <div class="opacity-50">
+                            <span class="fs-12 d-block">{{ translate('Total') }}</span>
+                            {{ translate('Product brand') }}
+                        </div>
+                        <div class="h3 fw-700 mb-3">{{ \App\Models\Brand::count() }}</div>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+                        <path fill="rgba(255,255,255,0.3)" fill-opacity="1" d="M0,128L34.3,112C68.6,96,137,64,206,96C274.3,128,343,224,411,250.7C480,277,549,235,617,213.3C685.7,192,754,192,823,181.3C891.4,171,960,149,1029,117.3C1097.1,85,1166,43,1234,58.7C1302.9,75,1371,149,1406,186.7L1440,224L1440,320L1405.7,320C1371.4,320,1303,320,1234,320C1165.7,320,1097,320,1029,320C960,320,891,320,823,320C754.3,320,686,320,617,320C548.6,320,480,320,411,320C342.9,320,274,320,206,320C137.1,320,69,320,34,320L0,320Z"></path>
                     </svg>
                 </div>
             </div>
@@ -181,33 +210,21 @@
                 <table class="table">
                     <tr>
                         <th>No.</th>
-                        <th>Nama Usaha
-                            <input type="text" name="nama_toko" placholder="Nama Usaha" value="{{$_GET['toko'] ?? ''}}" class="form-control form-control-sm" />
-                        </th>
-                        <th>Provinsi
-                            <select onchange="submit();" class="form-control form-control-sm" name="provinsi_1">
-                                <option value="">Pilih Provinsi</option>
-                                @foreach(\App\Models\Province::get() as $row)
-                                    <option value="{{$row->name}}">{{$row->name}}</option>
-                                @endforeach
-                            </select>
-                        </th>
+                        <th>Provinsi</th>
                         <th>Jumlah Pembeli</th>
                     </tr>
                     @php $i=1 @endphp
                     @foreach($buyer as $row)
                         <tr>
                             <td>{{$i}}</td>
-                            <td>{{$row->shop_name}}</td>
                             <td>{{$row->address_province ?? '-'}}</td>
                             <td class="text-center">{{$row->jumlah}}</td>
                         </tr>
                     @php $i++ @endphp
                     @endforeach
                 </table>
-
-                {{$buyer->links()}}
-</form>
+                <a href="{{ route('buyer_province.index') }}">Lihat Selengkapnya...</a>
+            </form>
             </div>
         </div>
     </div>
@@ -223,11 +240,11 @@
                     <tr>
                         <th>No.</th>
                         <th>Kategori
-                        <input type="text" name="kategori" placholder="Kategori" value="{{$_GET['kategori'] ?? ''}}" class="form-control form-control-sm" />
+                        <!-- <input type="text" name="kategori" placholder="Kategori" value="{{$_GET['kategori'] ?? ''}}" class="form-control form-control-sm" /> -->
                         </th>
                         <th>Produk
-                        <input type="text" name="produk" placholder="Produk" value="{{$_GET['produk'] ?? ''}}" class="form-control form-control-sm" />
-                        <input type="submit" class="d-none" />
+                        <!-- <input type="text" name="produk" placholder="Produk" value="{{$_GET['produk'] ?? ''}}" class="form-control form-control-sm" />
+                        <input type="submit" class="d-none" /> -->
                         </th>
                         <th>Jumlah Produk</th>
                     </tr>
@@ -240,7 +257,7 @@
                         </tr>
                     @endforeach
                 </table>
-                {{$products->links()}}
+                <a href="{{ route('stock_report.index') }}">Lihat Selengkapnya...</a>
             </form>
             </div>
         </div>
@@ -256,40 +273,26 @@
                 <table class="table">
                     <tr>
                         <th>No.</th>
-                        <th>Provinsi
-                        <select onchange="submit();" class="form-control form-control-sm" name="provinsi_2">
-                            <option value="">Pilih Provinsi</option>
-                            @foreach(\App\Models\Province::get() as $row)
-                                <option value="{{$row->name}}">{{$row->name}}</option>
-                            @endforeach
-                        </select>
-                        </th>
-                        <th>Status
-                            <select onchange="submit();" class="form-control form-control-sm" name="status">
-                                <option value="">Pilih Status</option>
-                                <option value="1">Terverifikasi</option>
-                                <option value="0">Belum Terverifikasi</option>
-                            </select>
-                        <input type="submit" class="d-none" />
-                        </th>
+                        <th>Provinsi</th>
+                        <th>Status</th>
                         <th>Total Penjual</th>
                     </tr>
-                    @foreach($seller as $row)
+                    @foreach($seller as $key => $row)
                         <tr>
-                            <td>{{$row->id}}</td>
+                            <td>{{$key+1}}</td>
                             <td>{{$row->province}}</td>
                             <td>{{$row->verification_status ? 'Verified' : 'Unverified'}}</td>
                             <td class="text-center">{{$row->jumlah}}</td>
                         </tr>
                     @endforeach
                 </table>
+                 <a href="{{ route('seller_count.index') }}">Lihat Selengkapnya...</a>
             </form>
             </div>
         </div>
     </div>
 </div>
 @endif
-
 
 @if(Auth::user()->user_type == 'admin' || in_array('1', json_decode(Auth::user()->staff->role->permissions)))
     <div class="row gutters-10">
@@ -322,7 +325,7 @@
     </div>
     <div class="card-body">
         <div class="aiz-carousel gutters-10 half-outside-arrow" data-items="6" data-xl-items="5" data-lg-items="4" data-md-items="3" data-sm-items="2" data-arrows='true'>
-            @foreach (filter_products(\App\Product::where('published', 1)->orderBy('num_of_sale', 'desc'))->limit(12)->get() as $key => $product)
+            @foreach (filter_products(\App\Models\Product::where('published', 1)->orderBy('num_of_sale', 'desc'))->limit(12)->get() as $key => $product)
                 <div class="carousel-box">
                     <div class="aiz-card-box border border-light rounded shadow-sm hov-shadow-md mb-2 has-transition bg-white">
                         <div class="position-relative">
@@ -372,9 +375,9 @@
             datasets: [
                 {
                     data: [
-                        {{ \App\Product::where('published', 1)->count() }},
-                        {{ \App\Product::where('published', 1)->where('added_by', 'seller')->count() }},
-                        {{ \App\Product::where('published', 1)->where('added_by', 'admin')->count() }}
+                        {{ \App\Models\Product::where('published', 1)->count() }},
+                        {{ \App\Models\Product::where('published', 1)->where('added_by', 'seller')->count() }},
+                        {{ \App\Models\Product::where('published', 1)->where('added_by', 'admin')->count() }}
                     ],
                     backgroundColor: [
                         "#fd3995",
@@ -418,9 +421,9 @@
             datasets: [
                 {
                     data: [
-                        {{ \App\Seller::count() }},
-                        {{ \App\Seller::where('verification_status', 1)->count() }},
-                        {{ \App\Seller::where('verification_status', 0)->count() }}
+                        {{ \App\Models\Seller::count() }},
+                        {{ \App\Models\Seller::where('verification_status', 1)->count() }},
+                        {{ \App\Models\Seller::where('verification_status', 0)->count() }}
                     ],
                     backgroundColor: [
                         "#fd3995",
